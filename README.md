@@ -16,7 +16,7 @@ Worksheet :
 <p float="left">
   <img src="./LowFidelityPrototype/KosLife.jpg" width="200" />
   <img src="./LowFidelityPrototype/FridgeChef.jpg" width="200" /> 
-  <img src="./LowFidelityPrototype/Dharmony1.jpg" width="200" />
+  <img src="./LowFidelityPrototype/DHarmony1.jpg" width="200" />
   <img src="./LowFidelityPrototype/Dharmony2.jpg" width="200" />
 </p>
 
