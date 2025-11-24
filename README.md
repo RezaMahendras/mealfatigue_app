@@ -13,7 +13,7 @@ Fitur Unggulan:
 - DHarmony (Couple Dining): Hilangkan debat "terserah mau makan apa" dengan pasangan. Fitur ini mencocokkan preferensi Anda dan pasangan (alergi, level pedas, makanan favorit). Sistem akan merekomendasikan menu "tengah" yang pasti disukai oleh kedua belah pihak.
 
 - Health & Nutrition Tracker: Setiap resep dilengkapi dengan detail Kalori dan Protein serta Rating Komunitas untuk menjamin rasa. Pantau juga kesehatan Anda di Dashboard dengan Daily Goals (target minum air 2L, target protein harian) yang bisa dicentang setiap hari.
-- 
+ 
 
 | Kelas | NIM | Nama Lengkap | GitHub Username |
 | :--- | :--- | :--- | :--- |
