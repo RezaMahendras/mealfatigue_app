@@ -1,4 +1,4 @@
-# meal_fatigue_app
+# Meal Fatigue App
 
 | Kelas | NIM | Nama Lengkap | GitHub Username |
 | :--- | :--- | :--- | :--- |
