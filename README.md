@@ -11,7 +11,14 @@ Link Figma : https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-i
 
 Worksheet :
 
-Low Fidelity Prototype : 
+Low Fidelity Prototype :
+![KosLife Page](./LowFidelityPrototype/KosLife.jpg)
+
+![FridgeChef Page](./LowFidelityPrototype/FridgeChef.jpg)
+
+![DHarmony Page1](./LowFidelityPrototype/Dharmony1.jpg)
+
+![DHarmony Page2](./LowFidelityPrototype/Dharmony2.jpg)
 
 ## Pembagian Tugas (Backlog)
 
