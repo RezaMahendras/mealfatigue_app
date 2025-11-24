@@ -27,6 +27,7 @@ Fitur Unggulan:
 https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PHPKXt2T3GorU-1
 
 ### Worksheet
+📄[Worksheet Kami (PDF)](./worksheet/pertama.pdf)
 
 <h3>Low Fidelity Prototype</h3>
 
