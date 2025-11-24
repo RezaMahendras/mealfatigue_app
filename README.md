@@ -11,14 +11,14 @@ Link Figma : https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-i
 
 Worksheet :
 
-Low Fidelity Prototype :
-![KosLife Page](./LowFidelityPrototype/KosLife.jpg)
+<h3>Low Fidelity Prototype</h3>
 
-![FridgeChef Page](./LowFidelityPrototype/FridgeChef.jpg)
-
-![DHarmony Page1](./LowFidelityPrototype/Dharmony1.jpg)
-
-![DHarmony Page2](./LowFidelityPrototype/Dharmony2.jpg)
+<p float="left">
+  <img src="./LowFidelityPrototype/KosLife.jpg" width="200" />
+  <img src="./LowFidelityPrototype/FridgeChef.jpg" width="200" /> 
+  <img src="./LowFidelityPrototype/Dharmony1.jpg" width="200" />
+  <img src="./LowFidelityPrototype/Dharmony2.jpg" width="200" />
+</p>
 
 ## Pembagian Tugas (Backlog)
 
