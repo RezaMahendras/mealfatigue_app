@@ -12,3 +12,17 @@ Link Figma : https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-i
 Worksheet :
 
 Low Fidelity Prototype : 
+
+## Pembagian Tugas (Backlog)
+
+| Fitur / Tugas (Backlog) | Penanggung Jawab (Assignee) | Level Kesulitan | Status |
+| :--- | :--- | :--- | :--- |
+| **Landing Page** |  Synthia Indira Prastica | Low | Selesai |
+| **Halaman Login & Signup (UI)** | Synthia Indira Prastica | Medium | Selesai |
+| **Integrasi API Key (Login & Signup)** | Reza Mahendra Saputra | High | Progres |
+| **Halaman Dashboard** |  Synthia Indira Prastica | Medium | Progres |
+| **Halaman Fitur "KosLife"** |  Synthia Indira Prastica | Medium | Progres |
+| **Halaman Fitur "FridgeChef"** | Reza Mahendra Saputra | Medium | Progres |
+| **Halaman Fitur "DHarmony"** | Rafsyanjani Hidayat | Medium | Progres |
+| **Halaman Profil (Tampilan)** | Rafsyanjani Hidayat | Low | Progres |
+| **Fungsi CRUD Profil** | Reza Mahendra Saputra  | High | Progres |
