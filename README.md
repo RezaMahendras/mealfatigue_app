@@ -1,16 +1,12 @@
 # meal_fatigue_app
 
-A new Flutter project.
+RI B-202210370311485-Reza Mahendra Saputra-RezaMahendras
+RI B-202210370311074-Synthia Indira Prastica-SynthiaIndira
+RI B-202210370311477-Rafsyanjani Hidayat-Rafsyanjani43
 
-## Getting Started
+Link Figma : https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PHPKXt2T3GorU-1
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+Worksheet :
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Low Fidelity Prototype : 
