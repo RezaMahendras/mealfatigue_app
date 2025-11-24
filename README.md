@@ -1,5 +1,6 @@
 # Meal Fatigue App
 
+### Deskripsi
 Sering merasa lelah memikirkan menu makanan setiap hari? Atau bingung mengatur uang belanja saat tanggal tua? Meal Fatigue adalah solusi all-in-one untuk mahasiswa dan siapa saja yang ingin hidup lebih sehat, hemat, dan praktis.
 
 Aplikasi ini tidak hanya memberikan resep, tetapi membantu Anda mengelola gaya hidup melalui fitur-fitur cerdas berbasis AI:
