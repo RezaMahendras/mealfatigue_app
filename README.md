@@ -28,6 +28,10 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 
 ### Worksheet
 📄[Worksheet Kami (PDF)](./worksheet/pertama.pdf)
+📄[Worksheet Kami (PDF)](./worksheet/kedua.pdf)
+📄[Worksheet Kami (PDF)](./worksheet/ketiga.pdf)
+📄[Worksheet Kami (PDF)](./worksheet/keempat.pdf)
+
 
 <h3>Low Fidelity Prototype</h3>
 
