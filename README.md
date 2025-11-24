@@ -47,11 +47,13 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 | Fitur / Tugas (Backlog) | Penanggung Jawab (Assignee) | Level Kesulitan | Status |
 | :--- | :--- | :--- | :--- |
 | **Landing Page** |  Synthia Indira Prastica | Low | Selesai |
-| **Halaman Login & Signup (UI)** | Synthia Indira Prastica | Medium | Selesai |
-| **Integrasi API Key (Login & Signup)** | Reza Mahendra Saputra | High | Progres |
-| **Halaman Dashboard** |  Synthia Indira Prastica | Medium | Progres |
+| **Halaman Login & Signup (UI)** | Reza Mahendra Saputra | Medium | Selesai |
+| **Integrasi Database (Login & Signup)** | Reza Mahendra Saputra | High | Selesai |
+| **Halaman Dashboard** |  Rafsyanjani Hidayat | Medium | Selesai |
+| **Integrasi Database Dasboard (Daily Goals)** | Rafsyanjani Hidayat | High | Selesai |
+| **Halaman Profil** |  Synthia Indira Prastica | Medium | Selesai |
+| **Halaman Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai |
+| **Integrasi Database Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai |
 | **Halaman Fitur "KosLife"** |  Synthia Indira Prastica | Medium | Progres |
 | **Halaman Fitur "FridgeChef"** | Reza Mahendra Saputra | Medium | Progres |
 | **Halaman Fitur "DHarmony"** | Rafsyanjani Hidayat | Medium | Progres |
-| **Halaman Profil (Tampilan)** | Rafsyanjani Hidayat | Low | Progres |
-| **Fungsi CRUD Profil** | Reza Mahendra Saputra  | High | Progres |
