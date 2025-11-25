@@ -11,7 +11,7 @@ class _LandingPageState extends State<LandingPage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 15), () {
       if (mounted) Navigator.pushReplacementNamed(context, '/auth_choice');
     });
   }
@@ -34,3 +34,4 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 }
+
