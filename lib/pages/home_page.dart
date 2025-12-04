@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-// --- SESUAIKAN IMPORT INI DENGAN STRUKTUR FOLDER ANDA ---
 import 'profile/profile_page.dart';
 import 'koslife/kos_life.dart';
 import 'fridge/fridge_chef.dart';
 import 'dharmony/dharmony.dart';
 
-// --- DEFINISI WARNA TEMA ---
 const Color darkNavy = Color(0xFF1E293B);
 const Color primaryOrange = Color(0xFFFF6B4A);
 const Color premiumPurple = Color(0xFF8B5CF6);
@@ -981,3 +979,4 @@ class _MissionListPageState extends State<MissionListPage> {
     );
   }
 }
+
