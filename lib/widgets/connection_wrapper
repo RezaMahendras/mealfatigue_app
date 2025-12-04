@@ -1,0 +1,113 @@
+import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+// --- Definisi Warna ---
+const Color darkNavy = Color(0xFF1E293B);
+const Color primaryOrange = Color(0xFFFF6B4A);
+
+// ==============================================================
+// 1. CLASS WRAPPER (LOGIKA CEK KONEKSI)
+// ==============================================================
+class ConnectionWrapper extends StatelessWidget {
+  final Widget child;
+
+  const ConnectionWrapper({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<ConnectivityResult>>(
+      // Menggunakan List<ConnectivityResult> untuk versi terbaru
+      stream: Connectivity().onConnectivityChanged,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final results = snapshot.data!;
+
+          // Cek apakah list hasil koneksi mengandung 'none' (Offline)
+          if (results.contains(ConnectivityResult.none)) {
+            return const NoInternetScreen(); // Panggil halaman offline
+          }
+
+          // Jika ada koneksi, tampilkan aplikasi normal
+          return child;
+        }
+
+        // Default tampilkan aplikasi (saat loading awal)
+        return child;
+      },
+    );
+  }
+}
+
+// ==============================================================
+// 2. CLASS NO INTERNET SCREEN (TAMPILAN SAAT OFFLINE)
+// ==============================================================
+class NoInternetScreen extends StatelessWidget {
+  const NoInternetScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon Wifi Mati
+              Container(
+                padding: const EdgeInsets.all(25),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 80,
+                  color: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // Judul
+              const Text(
+                "No Internet Connection",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: darkNavy,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Deskripsi
+              Text(
+                "Ups! Sepertinya jaringanmu terputus.\nAplikasi akan kembali normal otomatis saat internet nyala.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Indikator Loading
+              const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: primaryOrange)
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Menunggu koneksi...",
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
