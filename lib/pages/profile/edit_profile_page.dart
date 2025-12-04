@@ -1,8 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+// --- Definisi Warna Tema ---
+const Color primaryOrange = Color(0xFFFF6B4A);
+const Color darkNavy = Color(0xFF1E293B);
+const Color cardSurface = Color(0xFFF6F8FA);
 
 class EditProfilePage extends StatefulWidget {
-  // BAGIAN PENTING: Menerima kiriman data dari ProfilePage
-  final Map<String, String> currentData;
+  // [PERBAIKAN DI SINI] Ubah tipe data jadi dynamic agar cocok dengan ProfilePage
+  final Map<String, dynamic> currentData;
 
   const EditProfilePage({Key? key, required this.currentData}) : super(key: key);
 
@@ -13,7 +20,6 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controller text
   late TextEditingController nameCtrl;
   late TextEditingController nicknameCtrl;
   late TextEditingController ageCtrl;
@@ -25,30 +31,47 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? selectedStatus;
   final List<String> statusOptions = ['Mahasiswa', 'Pekerja', 'Lainnya'];
 
+  File? _imageFile;
+
   @override
   void initState() {
     super.initState();
-    // ISI FORM SESUAI DATA YANG DIKIRIM DARI PROFIL
-    nameCtrl = TextEditingController(text: widget.currentData['fullName']);
-    nicknameCtrl = TextEditingController(text: widget.currentData['nickName']);
-    ageCtrl = TextEditingController(text: widget.currentData['age']);
-    heightCtrl = TextEditingController(text: widget.currentData['height']);
-    weightCtrl = TextEditingController(text: widget.currentData['weight']);
-    emailCtrl = TextEditingController(text: widget.currentData['email']);
-    phoneCtrl = TextEditingController(text: widget.currentData['phone']);
+    // [SAFETY] Gunakan .toString() untuk jaga-jaga jika data bukan String murni
+    nameCtrl = TextEditingController(text: widget.currentData['fullName']?.toString() ?? '');
+    nicknameCtrl = TextEditingController(text: widget.currentData['nickName']?.toString() ?? '');
+    ageCtrl = TextEditingController(text: widget.currentData['age']?.toString() ?? '');
+    heightCtrl = TextEditingController(text: widget.currentData['height']?.toString() ?? '');
+    weightCtrl = TextEditingController(text: widget.currentData['weight']?.toString() ?? '');
+    emailCtrl = TextEditingController(text: widget.currentData['email']?.toString() ?? '');
+    phoneCtrl = TextEditingController(text: widget.currentData['phone']?.toString() ?? '');
 
-    // Cek status dropdown
-    String? statusAwal = widget.currentData['status'];
-    if (statusOptions.contains(statusAwal)) {
+    String? statusAwal = widget.currentData['status']?.toString();
+    if (statusAwal != null && statusOptions.contains(statusAwal)) {
       selectedStatus = statusAwal;
     }
   }
 
-  // FUNGSI SIMPAN & KIRIM BALIK DATA
+  Future<void> _getFromGallery() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   void _saveData() {
     if (_formKey.currentState!.validate()) {
-      // Bungkus data baru ke dalam Map
-      Map<String, String> newData = {
+      // Logic Path Gambar
+      String finalImagePath = _imageFile?.path ?? widget.currentData['profilePicturePath']?.toString() ?? '';
+
+      // Kirim data sebagai dynamic agar ProfilePage bisa menerimanya
+      Map<String, dynamic> newData = {
         'fullName': nameCtrl.text,
         'nickName': nicknameCtrl.text,
         'age': ageCtrl.text,
@@ -57,88 +80,116 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'email': emailCtrl.text,
         'phone': phoneCtrl.text,
         'status': selectedStatus ?? 'Mahasiswa',
+        'profilePicturePath': finalImagePath,
       };
 
-      // KEMBALI KE PROFIL MEMBAWA DATA BARU
       Navigator.pop(context, newData);
 
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: Colors.green, content: Text('Profil Diperbarui'))
+          const SnackBar(backgroundColor: Colors.green, content: Text('Changes saved successfully'))
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Logic Tampilan Gambar
+    String? oldPath = widget.currentData['profilePicturePath']?.toString();
+    bool hasOldImage = oldPath != null && oldPath.isNotEmpty && File(oldPath).existsSync();
+
+    ImageProvider? displayImage;
+    if (_imageFile != null) {
+      displayImage = FileImage(_imageFile!);
+    } else if (hasOldImage) {
+      displayImage = FileImage(File(oldPath));
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Edit Profil", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        centerTitle: true,
+        title: const Text("Edit Profile", style: TextStyle(color: darkNavy, fontWeight: FontWeight.bold, fontSize: 16)),
+        leadingWidth: 80,
+        leading: TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancel", style: TextStyle(color: Colors.grey, fontSize: 14)),
+        ),
         actions: [
-          IconButton(
-              icon: const Icon(Icons.check, color: Color(0xFFFF6B4A)),
-              onPressed: _saveData // Tombol Centang
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: TextButton(
+              onPressed: _saveData,
+              child: const Text("Done", style: TextStyle(color: primaryOrange, fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
           )
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildLabel("Nama Lengkap"),
-              _buildInput(nameCtrl, "Nama Lengkap"),
+              // --- FOTO PROFIL ---
+              GestureDetector(
+                onTap: _getFromGallery,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 80, height: 80,
+                      decoration: BoxDecoration(
+                        color: cardSurface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey.shade200),
+                        image: displayImage != null
+                            ? DecorationImage(image: displayImage, fit: BoxFit.cover)
+                            : null,
+                      ),
+                      child: displayImage == null
+                          ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0, right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(color: primaryOrange, shape: BoxShape.circle),
+                        child: const Icon(Icons.camera_alt, size: 12, color: Colors.white),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
 
-              _buildLabel("Nama Panggilan"),
-              _buildInput(nicknameCtrl, "Panggilan"),
+              // --- FORM FIELDS ---
+              _buildCompactField("Full Name", nameCtrl),
+              const SizedBox(height: 12),
+              _buildCompactField("Nickname", nicknameCtrl),
+              const SizedBox(height: 12),
 
               Row(
                 children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Umur"), _buildInput(ageCtrl, "Thn", isNumber: true)])),
-                  const SizedBox(width: 16),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Tinggi"), _buildInput(heightCtrl, "Cm", isNumber: true)])),
-                  const SizedBox(width: 16),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Berat"), _buildInput(weightCtrl, "Kg", isNumber: true)])),
+                  Expanded(child: _buildCompactField("Age", ageCtrl, isNumber: true, suffix: "yo")),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildCompactField("Height", heightCtrl, isNumber: true, suffix: "cm")),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildCompactField("Weight", weightCtrl, isNumber: true, suffix: "kg")),
                 ],
               ),
+              const SizedBox(height: 12),
 
-              _buildLabel("Status"),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedStatus,
-                    hint: const Text("Pilih Status"),
-                    isExpanded: true,
-                    items: statusOptions.map((String value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
-                    onChanged: (newValue) => setState(() => selectedStatus = newValue),
-                  ),
-                ),
-              ),
+              _buildDropdownField(),
+              const SizedBox(height: 12),
 
-              _buildLabel("Email"),
-              _buildInput(emailCtrl, "Email", isEmail: true),
+              _buildCompactField("Email", emailCtrl, isEmail: true),
+              const SizedBox(height: 12),
+              _buildCompactField("Phone", phoneCtrl, isNumber: true),
 
-              _buildLabel("Nomor HP"),
-              _buildInput(phoneCtrl, "Nomor HP", isNumber: true),
-
-              const SizedBox(height: 32),
-
-              // Tombol Simpan Besar
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B4A), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  onPressed: _saveData,
-                  child: const Text("Simpan", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-              )
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -146,18 +197,61 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildLabel(String label) => Padding(padding: const EdgeInsets.only(bottom: 8.0, top: 16.0), child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)));
+  Widget _buildCompactField(String label, TextEditingController ctrl, {bool isNumber = false, bool isEmail = false, String? suffix}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 48,
+          child: TextFormField(
+            controller: ctrl,
+            keyboardType: isNumber ? TextInputType.number : (isEmail ? TextInputType.emailAddress : TextInputType.text),
+            style: const TextStyle(fontSize: 14, color: darkNavy, fontWeight: FontWeight.w600),
+            cursorColor: primaryOrange,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: cardSurface,
+              suffixText: suffix,
+              suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: primaryOrange, width: 1)),
+            ),
+            validator: (v) => v!.isEmpty ? '' : null,
+          ),
+        ),
+      ],
+    );
+  }
 
-  Widget _buildInput(TextEditingController ctrl, String hint, {bool isNumber = false, bool isEmail = false}) {
-    return TextFormField(
-      controller: ctrl,
-      keyboardType: isNumber ? TextInputType.number : (isEmail ? TextInputType.emailAddress : TextInputType.text),
-      decoration: InputDecoration(
-        hintText: hint,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-      ),
-      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+  Widget _buildDropdownField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Status", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+        const SizedBox(height: 6),
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: cardSurface,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedStatus,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.grey),
+              style: const TextStyle(fontSize: 14, color: darkNavy, fontWeight: FontWeight.w600),
+              items: statusOptions.map((String value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+              onChanged: (newValue) => setState(() => selectedStatus = newValue),
+              dropdownColor: Colors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
