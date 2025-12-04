@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+// --- IMPORT WRAPPER KONEKSI DI SINI ---
+import 'widgets/connection_wrapper.dart';
+
 import 'pages/landing_page.dart';
 import 'pages/auth_choice_page.dart';
-import 'pages/login_page.dart';
-import 'pages/signup_page.dart';
+import 'pages/account/login_page.dart';
+import 'pages/account/signup_page.dart';
 
 void main() => runApp(MealFatigueApp());
 
@@ -19,6 +22,11 @@ class MealFatigueApp extends StatelessWidget {
         '/login': (_) => const LoginPage(),
         '/signup': (_) => const SignupPage(),
       },
+      builder: (context, child) {
+        return ConnectionWrapper(child: child!);
+      },
+      // ============================================================
+
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFFCEBE8),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -27,12 +35,10 @@ class MealFatigueApp extends StatelessWidget {
             foregroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         ),
-        textTheme:
-            const TextTheme(bodyMedium: TextStyle(color: Color(0xFF333333))),
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: Color(0xFF333333))),
       ),
     );
   }
