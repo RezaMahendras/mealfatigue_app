@@ -55,5 +55,7 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 | **Halaman Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai |
 | **Integrasi Database Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai |
 | **Halaman Fitur "KosLife"** |  Synthia Indira Prastica | Medium | Progres |
+| **Integrasi Database Fitur "koslife"** | Synthia Indira Prastica | High | Progres |
 | **Halaman Fitur "FridgeChef"** | Reza Mahendra Saputra | Medium | Progres |
 | **Halaman Fitur "DHarmony"** | Rafsyanjani Hidayat | Medium | Progres |
+| **Integrasi Database Fitur "DHarmony"** | Rafsyanjani Hidayat | High | Progres |
