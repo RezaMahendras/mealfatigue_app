@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../database_helper.dart';
-import '../widgets/logo_widget.dart';
+import '../../database_helper.dart';
+import '../../widgets/logo_widget.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -9,12 +9,17 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  bool obscure = true;
+  // State untuk visibilitas password
+  bool obscurePass = true;
+  bool obscureConfirm = true;
   bool _isLoading = false;
 
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final confirmCtrl = TextEditingController();
+
+  // Warna utama yang sama dengan Login Page
+  static const primaryOrange = Color(0xFFFF6B4A);
 
   void _handleSignup() async {
     String email = emailCtrl.text.trim();
@@ -22,12 +27,14 @@ class _SignupPageState extends State<SignupPage> {
     String confirm = confirmCtrl.text.trim();
 
     if (email.isEmpty || pass.isEmpty || confirm.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
     if (pass != confirm) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Passwords do not match')));
       return;
     }
 
@@ -36,15 +43,18 @@ class _SignupPageState extends State<SignupPage> {
     });
 
     try {
-      // Delay simulasi sebentar
       await Future.delayed(const Duration(milliseconds: 500));
 
       await DatabaseHelper.instance.registerUser(email, pass);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: Colors.green, content: Text('Registration Success! Please Login.'))
+          const SnackBar(
+              backgroundColor: Colors.green,
+              content: Text('Registration Success! Please Login.')
+          )
       );
+      // Ganti navigasi agar pengguna langsung dibawa ke halaman login setelah berhasil
       Navigator.pushReplacementNamed(context, '/login');
 
     } catch (e) {
@@ -54,123 +64,153 @@ class _SignupPageState extends State<SignupPage> {
         message = 'Email already registered!';
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Colors.red, content: Text(message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: Colors.red, content: Text(message)));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
+  void dispose() {
+    emailCtrl.dispose();
+    passCtrl.dispose();
+    confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  // Widget untuk tombol mata di input password
+  Widget _buildPasswordSuffixIcon(bool isObscure, VoidCallback onPressed) {
+    return IconButton(
+      // Menggunakan warna abu-abu yang sama dengan Login Page
+      icon: Icon(isObscure ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+      onPressed: onPressed,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Style input dikembalikan ke default 'filled: true' namun tetap rapi
+    // Definisi dekorasi input agar sama dengan Login Page
     final inputDecoration = InputDecoration(
       filled: true,
-      // Saya hapus fillColor custom, jadi ikut default tema
+      fillColor: Colors.grey[100],
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12), // Tetap rounded biar elegan
+        borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24), // Padding asli Anda
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header (Tombol Back)
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Padding(
                     padding: const EdgeInsets.only(top: 6, bottom: 10),
                     child: Row(children: const [
-                      Icon(Icons.arrow_back_ios, size: 18, color: Color(0xFF333333)), // Warna Asli
+                      Icon(Icons.arrow_back_ios, size: 18, color: Color(0xFF333333)),
                       SizedBox(width: 6),
                       Text('Sign Up', style: TextStyle(fontSize: 16)),
                     ]),
                   ),
                 ),
-                const SizedBox(height: 12),
-                const Center(child: LogoWidget(big: false)),
-                const SizedBox(height: 18),
 
-                TextField(controller: emailCtrl, decoration: inputDecoration.copyWith(hintText: 'Email')),
+                const SizedBox(height: 70),
+
+                // Logo Diperbesar
+                Center(
+                  child: Transform.scale(
+                    scale: 2.5,
+                    child: const LogoWidget(big: false),
+                  ),
+                ),
+
+                const SizedBox(height: 50),
+
+                // Form Input Email
+                TextField(
+                    controller: emailCtrl,
+                    decoration: inputDecoration.copyWith(hintText: 'Email')
+                ),
                 const SizedBox(height: 12),
 
+                // Form Input Password
                 TextField(
                     controller: passCtrl,
-                    obscureText: obscure,
+                    obscureText: obscurePass,
                     decoration: inputDecoration.copyWith(
                         hintText: 'Password',
-                        suffixIcon: IconButton(
-                            icon: Icon(obscure ? Icons.visibility : Icons.visibility_off),
-                            onPressed: () => setState(() => obscure = !obscure)
+                        suffixIcon: _buildPasswordSuffixIcon(
+                            obscurePass,
+                                () => setState(() => obscurePass = !obscurePass)
                         )
                     )
                 ),
                 const SizedBox(height: 12),
 
+                // Form Input Confirm Password
                 TextField(
                     controller: confirmCtrl,
-                    obscureText: obscure,
-                    decoration: inputDecoration.copyWith(hintText: 'Confirm Password')
+                    obscureText: obscureConfirm,
+                    decoration: inputDecoration.copyWith(
+                        hintText: 'Confirm Password',
+                        suffixIcon: _buildPasswordSuffixIcon(
+                            obscureConfirm,
+                                () => setState(() => obscureConfirm = !obscureConfirm)
+                        )
+                    )
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Tombol Sign Up
                 SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        // Warna ikut default tema (biasanya biru)
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), // Tetap rounded
-                        padding: const EdgeInsets.symmetric(vertical: 12), // Padding asli + sedikit tinggi
-                      ),
-                      onPressed: _isLoading ? null : _handleSignup,
-                      child: _isLoading
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Sign Up'),
+                        style: ElevatedButton.styleFrom(
+                          // Menggunakan warna orange yang sama
+                            backgroundColor: primaryOrange,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 0
+                        ),
+                        onPressed: _isLoading ? null : _handleSignup,
+                        child: _isLoading
+                            ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                        )
+                            : const Text('Sign Up', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                     )
                 ),
 
-                const SizedBox(height: 12),
-                const Center(child: Text('Or', style: TextStyle(color: Color(0xFF9A9A9A)))), // Warna Asli
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
 
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  _socialBox('assets/ic_apple.png'),
-                  const SizedBox(width: 12),
-                  _socialBox('assets/ic_google.png'),
-                  const SizedBox(width: 12),
-                  _socialBox('assets/ic_facebook.png'),
-                ]),
-                const SizedBox(height: 18),
-
+                // Link Login
                 Center(
                     child: TextButton(
                         onPressed: _isLoading ? null : () => Navigator.pushNamed(context, '/login'),
-                        child: const Text('Already have account? Log in')
+                        child: Text(
+                            'Already have an account? Log in',
+                            // Menggunakan warna orange yang sama dan fontWeight yang sama
+                            style: TextStyle(
+                                color: primaryOrange.withOpacity(0.8),
+                                fontWeight: FontWeight.w600
+                            )
+                        )
                     )
                 )
               ]
           ),
         ),
       ),
-    );
-  }
-
-  Widget _socialBox(String asset) {
-    // Style box asli (shadow black12)
-    return Container(
-        width: 44, height: 44,
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0,2))]
-        ),
-        padding: const EdgeInsets.all(8),
-        child: Image.asset(asset, fit: BoxFit.contain, errorBuilder: (_,__,___)=> const Icon(Icons.image_not_supported))
     );
   }
 }
