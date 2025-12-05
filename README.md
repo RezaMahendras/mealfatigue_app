@@ -44,18 +44,29 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 
 ## Pembagian Tugas (Backlog)
 
-| Fitur / Tugas (Backlog) | Penanggung Jawab (Assignee) | Level Kesulitan | Status |
-| :--- | :--- | :--- | :--- |
-| **Landing Page** |  Synthia Indira Prastica | Low | Selesai |
-| **Halaman Login & Signup (UI)** | Reza Mahendra Saputra | Medium | Selesai |
-| **Integrasi Database (Login & Signup)** | Reza Mahendra Saputra | High | Selesai |
-| **Halaman Dashboard** |  Rafsyanjani Hidayat | Medium | Selesai |
-| **Integrasi Database Dasboard (Daily Goals)** | Rafsyanjani Hidayat | High | Selesai |
-| **Halaman Profil** |  Synthia Indira Prastica | Medium | Selesai |
-| **Halaman Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai |
-| **Integrasi Database Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai |
-| **Halaman Fitur "KosLife"** |  Synthia Indira Prastica | Medium | Progres |
-| **Integrasi Database Fitur "koslife"** | Synthia Indira Prastica | High | Progres |
-| **Halaman Fitur "FridgeChef"** | Reza Mahendra Saputra | Medium | Progres |
-| **Halaman Fitur "DHarmony"** | Rafsyanjani Hidayat | Medium | Progres |
-| **Integrasi Database Fitur "DHarmony"** | Rafsyanjani Hidayat | High | Progres |
+| Fitur / Tugas (Backlog) | Penanggung Jawab (Assignee) | Level Kesulitan | Status | Ok |
+| :--- | :--- | :--- | :--- | :--- |
+| **Landing Page** |  Synthia Indira Prastica | Low | Selesai | ✔ |
+ | **Halaman Login & Signup (UI)** | Reza Mahendra Saputra | Medium | Selesai | ✔ |
+| **Integrasi Database (Login & Signup)** | Reza Mahendra Saputra | High | Selesai | ✔ |
+| **Halaman Dashboard** |  Rafsyanjani Hidayat | Medium | Selesai | ✔ |
+| **Integrasi Database Dasboard (Daily Goals)** | Rafsyanjani Hidayat | High | Selesai | ✔ |
+| **Halaman Profil** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
+| **Halaman Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai | ✔ |
+| **Integrasi Database Edit Profil (CRUD)** | Reza Mahendra Saputra | High | Selesai | ✔ |
+| **Halaman Profil help center** |  Synthia Indira Prastica | Medium | Progres | |
+| **Halaman Profil notification** |  Rafsyanjani Hidayat | Medium | Progres | |
+| **Halaman Profil security** |  Reza Mahendra Saputra | Medium | Progres | |
+| **Halaman Fitur "KosLife"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
+| **Halaman Fitur "KosLife setup"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
+| **Halaman Fitur "KosLife Hasil"** |  Synthia Indira Prastica | Medium | Progres | |
+| **Integrasi Database Fitur "koslife"** | Synthia Indira Prastica | High | Progres | |
+| **Halaman Fitur "FridgeChef"** | Reza Mahendra Saputra | Medium | Selesai | ✔ |
+| **Halaman Fitur "FridgeChef recipe"** | Reza Mahendra Saputra | Medium | Selesai | ✔ |
+| **Halaman Fitur "FridgeChef cooking mode"** | Reza Mahendra Saputra | Medium | Progres | |
+| **Halaman Fitur "FridgeChef vidio tutorial"** | Reza Mahendra Saputra | High | Progres | |
+| **Halaman Fitur "DHarmony"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
+| **Halaman Fitur "DHarmony couple profie"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
+| **Halaman Fitur "DHarmony couple profie CRUD"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
+| **Integrasi Database Fitur "DHarmony couple profie"** | Rafsyanjani Hidayat | High | Selesai | ✔ |
+| **Halaman Fitur "DHarmony weekend menu"** | Rafsyanjani Hidayat | Medium | Progres | |
