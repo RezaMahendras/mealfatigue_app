@@ -55,12 +55,12 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 | **Halaman Edit Profil (CRUD)** | Synthia Indira Prastica | High | Selesai | ✔ |
 | **Integrasi Database Edit Profil (CRUD)** | Reza Mahendra Saputra | High | Selesai | ✔ |
 | **Halaman Profil help center** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
-| **Halaman Profil notification** |  Rafsyanjani Hidayat | Medium | Progres | |
-| **Halaman Profil security** |  Reza Mahendra Saputra | Medium | Progres | |
+| **Halaman Profil notification** |  Rafsyanjani Hidayat | Medium | Selesai | ✔ |
+| **Halaman Profil security** |  Reza Mahendra Saputra | Medium | Selesai | ✔ |
 | **Halaman Fitur "KosLife"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
 | **Halaman Fitur "KosLife setup"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
 | **Halaman Fitur "KosLife Hasil"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
-| **Integrasi Database Fitur "koslife"** | Synthia Indira Prastica | High | Progres | |
+| **Integrasi Database Fitur "koslife"** | Synthia Indira Prastica | High | Selesai | ✔ |
 | **Halaman Fitur "FridgeChef"** | Reza Mahendra Saputra | Medium | Selesai | ✔ |
 | **Halaman Fitur "FridgeChef recipe"** | Reza Mahendra Saputra | Medium | Selesai | ✔ |
 | **Halaman Fitur "FridgeChef cooking mode"** | Reza Mahendra Saputra | Medium | Selesai | ✔ |
@@ -69,4 +69,4 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 | **Halaman Fitur "DHarmony couple profie"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
 | **Halaman Fitur "DHarmony couple profie CRUD"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
 | **Integrasi Database Fitur "DHarmony couple profie"** | Rafsyanjani Hidayat | High | Selesai | ✔ |
-| **Halaman Fitur "DHarmony weekend menu"** | Rafsyanjani Hidayat | Medium | Progres | |
+| **Halaman Fitur "DHarmony weekend menu"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
