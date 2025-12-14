@@ -57,6 +57,11 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 | **Halaman Profil help center** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
 | **Halaman Profil notification** |  Rafsyanjani Hidayat | Medium | Selesai | ✔ |
 | **Halaman Profil security** |  Reza Mahendra Saputra | Medium | Selesai | ✔ |
+| **Halaman Profil change email** |  Reza Mahendra Saputra | Medium | Selesai | ✔ |
+| **Halaman Profil change password** |  Reza Mahendra Saputra | Medium | Selesai | ✔ |
+| **Halaman Profil chatbot** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
+| **Halaman Profil email page** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
+| **Halaman Profil legal content** |  Rafsyanjani Hidayat | Medium | Selesai | ✔ |
 | **Halaman Fitur "KosLife"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
 | **Halaman Fitur "KosLife setup"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
 | **Halaman Fitur "KosLife Hasil"** |  Synthia Indira Prastica | Medium | Selesai | ✔ |
@@ -70,3 +75,4 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 | **Halaman Fitur "DHarmony couple profie CRUD"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
 | **Integrasi Database Fitur "DHarmony couple profie"** | Rafsyanjani Hidayat | High | Selesai | ✔ |
 | **Halaman Fitur "DHarmony weekend menu"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
+| **Upload Assets"** | Synthia Indira Prastica | Medium | Selesai | ✔ |
