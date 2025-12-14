@@ -1,7 +1,7 @@
-import 'dart:io'; // [FIX] Wajib import ini untuk File
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
-import '../../database_helper.dart'; // Sesuaikan lokasi jika perlu
+import '../../database_helper.dart';
 import 'notifications.dart';
 import 'security.dart';
 import 'helpcenter.dart';
@@ -29,9 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String weight = "";
   String status = "";
 
-  // [FIX] Tambahkan variabel untuk path foto
   String? profilePicPath;
-
   bool isLoading = true;
 
   @override
@@ -40,7 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadProfile();
   }
 
-  // 1. FUNGSI LOAD DATA DARI DB
+  // 1. FUNGSI LOAD DATA
   Future<void> _loadProfile() async {
     final data = await DatabaseHelper.instance.getUserProfile();
     if (data != null) {
@@ -53,7 +51,6 @@ class _ProfilePageState extends State<ProfilePage> {
         height = data['height'] ?? "";
         weight = data['weight'] ?? "";
         status = data['status'] ?? "Mahasiswa";
-        // [FIX] Ambil path foto dari database
         profilePicPath = data['profilePicturePath'];
         isLoading = false;
       });
@@ -62,10 +59,9 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // 2. FUNGSI NAVIGASI & SIMPAN KE DB
+  // 2. FUNGSI NAVIGASI EDIT
   void _navigateToEdit() async {
-    // [FIX] Masukkan profilePicturePath ke currentData agar bisa dilihat di halaman edit
-    Map<String, dynamic> currentData = { // Ubah jadi dynamic agar aman
+    Map<String, dynamic> currentData = {
       'fullName': fullName,
       'nickName': nickName,
       'email': email,
@@ -74,7 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
       'height': height,
       'weight': weight,
       'status': status,
-      'profilePicturePath': profilePicPath, // Kirim path saat ini
+      'profilePicturePath': profilePicPath,
     };
 
     final result = await Navigator.push(
@@ -84,12 +80,8 @@ class _ProfilePageState extends State<ProfilePage> {
         )
     );
 
-    // [FIX] Update logika penerimaan data
     if (result != null) {
-      // Update ke database
       await DatabaseHelper.instance.updateUserProfile(result);
-
-      // Update state lokal (Refresh tampilan)
       setState(() {
         fullName = result['fullName'];
         nickName = result['nickName'];
@@ -99,10 +91,100 @@ class _ProfilePageState extends State<ProfilePage> {
         email = result['email'];
         phone = result['phone'];
         status = result['status'];
-        // [FIX] Update path foto yang baru dipilih
         profilePicPath = result['profilePicturePath'];
       });
     }
+  }
+
+  // --- 3. FUNGSI BARU: CUSTOM LOGOUT DIALOG ---
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(color: Colors.black26, blurRadius: 10.0, offset: Offset(0.0, 10.0)),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                // Icon Header dengan Background Merah Muda
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.logout_rounded, size: 32, color: Colors.red),
+                ),
+                const SizedBox(height: 20),
+
+                // Judul
+                const Text(
+                  "Log Out?",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkNavy),
+                ),
+                const SizedBox(height: 8),
+
+                // Deskripsi
+                const Text(
+                  "Are you sure you want to log out from your account?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const SizedBox(height: 24),
+
+                // Tombol Aksi
+                Row(
+                  children: [
+                    // Tombol Cancel
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        child: const Text("Cancel", style: TextStyle(color: darkNavy, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Tombol Yes, Logout
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Tutup dialog
+                          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false); // Logout process
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0
+                        ),
+                        child: const Text("Yes, Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -114,7 +196,6 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     }
 
-    // [FIX] Cek validitas gambar sebelum render
     bool hasImage = profilePicPath != null &&
         profilePicPath!.isNotEmpty &&
         File(profilePicPath!).existsSync();
@@ -127,7 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- 1. HEADER TITLE ---
+              // HEADER TITLE
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -144,7 +225,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 30),
 
-              // --- 2. PROFILE INFO (UI FOTO DIPERBAIKI) ---
+              // PROFILE INFO
               Row(
                 children: [
                   Stack(
@@ -155,7 +236,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           shape: BoxShape.circle,
                           color: Colors.white,
                           border: Border.all(color: Colors.grey.shade200, width: 1),
-                          // [FIX] Tampilkan gambar jika ada
                           image: hasImage
                               ? DecorationImage(
                               image: FileImage(File(profilePicPath!)),
@@ -163,7 +243,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           )
                               : null,
                         ),
-                        // [FIX] Jika tidak ada gambar, tampilkan Icon Person
                         child: !hasImage
                             ? const Icon(Icons.person, size: 42, color: darkNavy)
                             : null,
@@ -177,7 +256,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: InkWell(
                             onTap: _navigateToEdit,
                             customBorder: const CircleBorder(),
-                            splashColor: Colors.white.withOpacity(0.3),
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
@@ -217,7 +295,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 32),
 
-              // --- 3. STATS CARD ---
+              // STATS CARD
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
@@ -242,7 +320,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 32),
 
-              // --- 4. MENU LIST ---
+              // MENU LIST
               Column(
                 children: [
                   _buildMenuItem(Icons.person_outline, "Account Info", onTap: _navigateToEdit),
@@ -284,11 +362,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 40),
 
-              // --- 5. LOGOUT BUTTON ---
+              // --- 5. LOGOUT BUTTON (DIPERBARUI) ---
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false),
+                  // Panggil fungsi dialog di sini
+                  onPressed: () => _showLogoutConfirmation(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: BorderSide(color: Colors.red.shade200),
