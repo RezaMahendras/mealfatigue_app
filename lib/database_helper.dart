@@ -17,7 +17,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    // --- UBAH VERSI KE 5 (Wajib dinaikkan agar perubahan terdeteksi) ---
+    // Versi 5
     return await openDatabase(
       path,
       version: 5,
@@ -67,9 +67,7 @@ class DatabaseHelper {
       });
     }
 
-    // --- [PENTING] MIGRASI VERSI 5: TAMBAH KOLOM FOTO ---
-    // Ini yang bikin error sebelumnya. Kita harus menambah kolom ini secara manual
-    // untuk database yang sudah terlanjur dibuat di HP.
+    // Migrasi Versi 5
     if (oldVersion < 5) {
       try {
         await db.execute("ALTER TABLE user_profile ADD COLUMN profilePicturePath TEXT");
@@ -137,7 +135,6 @@ class DatabaseHelper {
     ''');
 
     // 5. TABEL USER PROFILE
-    // Kita tambahkan profilePicturePath di sini untuk user yang baru install aplikasi
     await db.execute('''
       CREATE TABLE user_profile (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -167,7 +164,6 @@ class DatabaseHelper {
       'ai_analysis': 'Alex needs careful carb management while Blake prefer full plant based. Our AI focuses on middle ground recipes that satisfy both needs.'
     });
 
-    // --- DATA DEFAULT USER PROFILE ---
     await db.insert('user_profile', {
       'fullName': '',
       'nickName': '',
@@ -177,24 +173,40 @@ class DatabaseHelper {
       'height': '',
       'weight': '',
       'status': 'Mahasiswa',
-      'profilePicturePath': null // Default kosong
+      'profilePicturePath': null
     });
   }
 
-  // --- AUTH METHODS (TETAP) ---
+  // --- AUTH METHODS (UPDATED) ---
+
+  // 1. Register: Simpan ke Users DAN update Profile
   Future<int> registerUser(String email, String password) async {
     final db = await instance.database;
     final data = {'email': email, 'password': password};
-    return await db.insert('users', data, conflictAlgorithm: ConflictAlgorithm.fail);
+
+    // Insert ke tabel Auth utama
+    final id = await db.insert('users', data, conflictAlgorithm: ConflictAlgorithm.fail);
+
+    // Sinkronisasi email ke tabel Profil
+    await db.update('user_profile', {'email': email}, where: 'id = ?', whereArgs: [1]);
+
+    return id;
   }
 
+  // 2. Login: Cek credentials DAN update Profile jika sukses
   Future<bool> loginUser(String email, String password) async {
     final db = await instance.database;
     final maps = await db.query('users', where: 'email = ? AND password = ?', whereArgs: [email, password]);
-    return maps.isNotEmpty;
+
+    if (maps.isNotEmpty) {
+      // Sinkronisasi email ke tabel Profil saat login berhasil
+      await db.update('user_profile', {'email': email}, where: 'id = ?', whereArgs: [1]);
+      return true;
+    }
+    return false;
   }
 
-  // --- REMEMBER ME METHODS (TETAP) ---
+  // --- REMEMBER ME METHODS ---
   Future<void> saveSession(String email, String password) async {
     final db = await instance.database;
     await db.delete('saved_session');
@@ -217,7 +229,7 @@ class DatabaseHelper {
     return null;
   }
 
-  // --- KOSLIFE METHODS (TETAP) ---
+  // --- KOSLIFE METHODS ---
   Future<int> createBudget(int total, int remaining) async {
     final db = await instance.database;
     final data = {
@@ -254,7 +266,7 @@ class DatabaseHelper {
     return await db.query('koslife_items', where: 'budget_id = ?', whereArgs: [budgetId]);
   }
 
-  // --- COUPLE PROFILE METHODS (TETAP) ---
+  // --- COUPLE PROFILE METHODS ---
   Future<Map<String, dynamic>?> getCoupleProfile() async {
     final db = await instance.database;
     final result = await db.query('couple_profile', limit: 1);
@@ -275,9 +287,173 @@ class DatabaseHelper {
     return null;
   }
 
-  // Fungsi ini sekarang akan BERHASIL karena tabel user_profile sudah punya kolom foto
   Future<int> updateUserProfile(Map<String, dynamic> row) async {
     final db = await instance.database;
     return await db.update('user_profile', row, where: 'id = ?', whereArgs: [1]);
+  }
+
+  // --- CHANGE PASSWORD ---
+  Future<String> changePassword(String oldPassword, String newPassword) async {
+    final db = await instance.database;
+
+    try {
+      final profile = await getUserProfile();
+      String currentEmail = profile?['email'] ?? '';
+
+      var checkUser = await db.query(
+        'users',
+        where: 'email = ? AND password = ?',
+        whereArgs: [currentEmail, oldPassword],
+      );
+
+      if (checkUser.isEmpty) {
+        final checkByPass = await db.query(
+          'users',
+          where: 'password = ?',
+          whereArgs: [oldPassword],
+        );
+
+        if (checkByPass.isNotEmpty) {
+          currentEmail = checkByPass.first['email'] as String;
+          await db.update('user_profile', {'email': currentEmail}, where: 'id = ?', whereArgs: [1]);
+        } else {
+          return "Old password is incorrect!";
+        }
+      }
+
+      await db.update(
+        'users',
+        {'password': newPassword},
+        where: 'email = ?',
+        whereArgs: [currentEmail],
+      );
+
+      await saveSession(currentEmail, newPassword);
+
+      return "Success";
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
+  // --- CHANGE EMAIL ---
+  Future<String> changeEmail(String password, String newEmail) async {
+    final db = await instance.database;
+
+    try {
+      final profile = await getUserProfile();
+      String currentEmail = profile?['email'] ?? '';
+
+      final checkUser = await db.query(
+        'users',
+        where: 'email = ? AND password = ?',
+        whereArgs: [currentEmail, password],
+      );
+
+      if (checkUser.isEmpty) {
+        final checkByPass = await db.query(
+          'users',
+          where: 'password = ?',
+          whereArgs: [password],
+        );
+
+        if (checkByPass.isNotEmpty) {
+          currentEmail = checkByPass.first['email'] as String;
+        } else {
+          return "Incorrect password!";
+        }
+      }
+
+      final checkUnique = await db.query(
+        'users',
+        where: 'email = ?',
+        whereArgs: [newEmail],
+      );
+
+      if (checkUnique.isNotEmpty) {
+        return "Email is already registered by another user.";
+      }
+
+      await db.update(
+        'users',
+        {'email': newEmail},
+        where: 'email = ?',
+        whereArgs: [currentEmail],
+      );
+
+      await db.update(
+        'user_profile',
+        {'email': newEmail},
+        where: 'id = ?',
+        whereArgs: [1],
+      );
+
+      await saveSession(newEmail, password);
+
+      return "Success";
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
+  // --- DELETE ACCOUNT (NEW FEATURE) ---
+  Future<String> deleteAccount(String password) async {
+    final db = await instance.database;
+
+    try {
+      // 1. Ambil Email Saat Ini
+      final profile = await getUserProfile();
+      String currentEmail = profile?['email'] ?? '';
+
+      // 2. Verifikasi Password sebelum menghapus
+      var checkUser = await db.query(
+        'users',
+        where: 'email = ? AND password = ?',
+        whereArgs: [currentEmail, password],
+      );
+
+      if (checkUser.isEmpty) {
+        // Fallback: cek berdasarkan password jika email profil salah
+        final checkByPass = await db.query('users', where: 'password = ?', whereArgs: [password]);
+        if (checkByPass.isNotEmpty) {
+          currentEmail = checkByPass.first['email'] as String;
+        } else {
+          return "Incorrect password!";
+        }
+      }
+
+      // 3. Hapus Data
+      // Hapus dari tabel Auth
+      await db.delete(
+        'users',
+        where: 'email = ?',
+        whereArgs: [currentEmail],
+      );
+
+      // Reset Profile menjadi default (jangan dihapus, tapi dikosongkan)
+      await db.update(
+        'user_profile',
+        {
+          'fullName': '',
+          'nickName': '',
+          'email': '@gmail.com', // Reset
+          'phone': '',
+          'age': '',
+          'height': '',
+          'weight': '',
+          'status': 'Mahasiswa',
+          'profilePicturePath': null
+        },
+        where: 'id = ?',
+        whereArgs: [1],
+      );
+
+      // Hapus Session
+      await clearSession();
+
+      return "Success";
+    } catch (e) {
+      return "Error: $e";
+    }
   }
 }
