@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'chatbot.dart';
+import 'email_page.dart'; // [PENTING] Import halaman baru
 
 // --- Definisi Warna ---
 const Color primaryOrange = Color(0xFFFF6B4A);
@@ -9,7 +11,7 @@ const Color cardSurface = Color(0xFFF6F8FA);
 class FaqItem {
   final String question;
   final String answer;
-  final String category; // 'General', 'Account', 'Payment', 'Security'
+  final String category;
 
   FaqItem({required this.question, required this.answer, required this.category});
 }
@@ -22,13 +24,9 @@ class HelpCenterPage extends StatefulWidget {
 }
 
 class _HelpCenterPageState extends State<HelpCenterPage> {
-  // Controller untuk search bar
   final TextEditingController _searchController = TextEditingController();
-
-  // State untuk kategori yang dipilih
   String _selectedCategory = 'All';
 
-  // Database Dummy Pertanyaan
   final List<FaqItem> _allFaqs = [
     FaqItem(
       category: 'Account',
@@ -57,28 +55,21 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
     ),
   ];
 
-  // List yang akan ditampilkan (hasil filter)
   List<FaqItem> _filteredFaqs = [];
 
   @override
   void initState() {
     super.initState();
-    _filteredFaqs = _allFaqs; // Awalnya tampilkan semua
+    _filteredFaqs = _allFaqs;
   }
 
-  // --- Logic Filtering (Search + Category) ---
   void _runFilter() {
     String query = _searchController.text.toLowerCase();
-
     setState(() {
       _filteredFaqs = _allFaqs.where((item) {
-        // 1. Cek Kategori
         bool matchesCategory = _selectedCategory == 'All' || item.category == _selectedCategory;
-
-        // 2. Cek Search Text
         bool matchesSearch = item.question.toLowerCase().contains(query) ||
             item.answer.toLowerCase().contains(query);
-
         return matchesCategory && matchesSearch;
       }).toList();
     });
@@ -88,7 +79,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
     setState(() {
       _selectedCategory = category;
     });
-    _runFilter(); // Jalankan filter ulang saat kategori berubah
+    _runFilter();
   }
 
   @override
@@ -127,7 +118,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
       ),
       body: Column(
         children: [
-          // --- HEADER SECTION (Statis) ---
+          // HEADER SECTION
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
             child: Column(
@@ -152,7 +143,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
                   ),
                   child: TextField(
                     controller: _searchController,
-                    onChanged: (value) => _runFilter(), // Auto search saat ngetik
+                    onChanged: (value) => _runFilter(),
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       suffixIcon: _searchController.text.isNotEmpty
@@ -173,7 +164,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // CATEGORY TABS (Scrollable Horizontal)
+                // CATEGORY TABS
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -191,7 +182,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
             ),
           ),
 
-          // --- SCROLLABLE CONTENT ---
+          // SCROLLABLE CONTENT
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -204,7 +195,6 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // HASIL PENCARIAN / LIST FAQ
                   if (_filteredFaqs.isEmpty)
                     _buildEmptyState()
                   else
@@ -212,32 +202,37 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
 
                   const SizedBox(height: 32),
 
-                  // CONTACT SUPPORT
                   const Text(
                     "Still need help?",
                     style: TextStyle(color: darkNavy, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 16),
+
+                  // --- BAGIAN EMAIL (SUDAH DIHUBUNGKAN) ---
                   _buildContactItem(
                       Icons.email_outlined,
                       "Email Support",
-                      "Get response within 24h",
+                      "mealfatigue@gmail.com",
                           () {
-                        // Simulasi aksi email
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Opening Email App...")),
+                        // Navigasi ke EmailPage
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const EmailPage()),
                         );
                       }
                   ),
+
                   const SizedBox(height: 12),
+
+                  // --- BAGIAN LIVE CHAT ---
                   _buildContactItem(
                       Icons.chat_bubble_outline,
                       "Live Chat",
                       "Available 09:00 - 17:00",
                           () {
-                        // Simulasi aksi chat
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Connecting to Live Agent...")),
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ChatbotPage())
                         );
                       }
                   ),
@@ -251,7 +246,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
     );
   }
 
-  // Widget: Chips Kategori (Pill Shape)
+  // Widget Helper (Tidak berubah)
   Widget _buildCategoryChip(String title) {
     bool isSelected = _selectedCategory == title;
     return Padding(
@@ -282,7 +277,6 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
     );
   }
 
-  // Widget: FAQ Item Expansion Tile
   Widget _buildFaqItem(FaqItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -299,7 +293,6 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
         ],
       ),
       child: Theme(
-        // Menghilangkan garis border bawaan ExpansionTile saat dibuka
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           iconColor: primaryOrange,
@@ -315,7 +308,6 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Garis vertikal kecil sebagai penanda visual
                   Container(width: 2, height: 40, color: primaryOrange.withOpacity(0.3)),
                   const SizedBox(width: 12),
                   Expanded(
@@ -333,7 +325,6 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
     );
   }
 
-  // Widget: Empty State (Jika tidak ada hasil search)
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -357,8 +348,47 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
     );
   }
 
-  // Widget: Contact Button yang bisa diklik
-  Widget _buildContactItem(IconData icon, String title, String subtitle, VoidCallback onTap) {
+  Widget _buildContactItem(IconData icon, String title, String subtitle, VoidCallback? onTap) {
+    Widget content = Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: primaryOrange.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: primaryOrange, size: 22),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: darkNavy)),
+              const SizedBox(height: 2),
+              Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+            ],
+          ),
+        ),
+        if (onTap != null)
+          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
+      ],
+    );
+
+    final decoration = BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.grey.shade200),
+    );
+
+    if (onTap == null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: decoration,
+        child: content,
+      );
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -366,35 +396,8 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
         borderRadius: BorderRadius.circular(12),
         child: Ink(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: primaryOrange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: primaryOrange, size: 22),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: darkNavy)),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  ],
-                ),
-              ),
-              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
-            ],
-          ),
+          decoration: decoration,
+          child: content,
         ),
       ),
     );
