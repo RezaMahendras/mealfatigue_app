@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+// --- SESUAIKAN IMPORT INI DENGAN STRUKTUR FOLDER ANDA ---
 import 'profile/profile_page.dart';
 import 'koslife/kos_life.dart';
 import 'fridge/fridge_chef.dart';
 import 'dharmony/dharmony.dart';
+import 'dart:io'; // Untuk File
+import '../../database_helper.dart';
 
+// --- DEFINISI WARNA TEMA ---
 const Color darkNavy = Color(0xFF1E293B);
 const Color primaryOrange = Color(0xFFFF6B4A);
 const Color premiumPurple = Color(0xFF8B5CF6);
@@ -80,7 +84,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 // =========================================================
-// 2. DASHBOARD TAB (UPDATED: SALAD, JUS, & BUAH)
+// 2. DASHBOARD TAB (UPDATED: SINKRONISASI FOTO PROFIL)
 // =========================================================
 class DashboardTab extends StatefulWidget {
   const DashboardTab({Key? key}) : super(key: key);
@@ -90,6 +94,24 @@ class DashboardTab extends StatefulWidget {
 }
 
 class _DashboardTabState extends State<DashboardTab> {
+  String? profilePicPath; // Variabel untuk menyimpan path foto
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData(); // Load data saat halaman dibuat
+  }
+
+  // Fungsi ambil data dari Database
+  Future<void> _loadProfileData() async {
+    final data = await DatabaseHelper.instance.getUserProfile();
+    if (data != null && mounted) {
+      setState(() {
+        profilePicPath = data['profilePicturePath'];
+      });
+    }
+  }
+
   String getDayName(int weekday) {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return days[weekday - 1];
@@ -100,6 +122,11 @@ class _DashboardTabState extends State<DashboardTab> {
     DateTime now = DateTime.now();
     DateTime startOfWeek = now.subtract(Duration(days: now.weekday % 7));
 
+    // Cek apakah ada file gambar yang valid
+    bool hasImage = profilePicPath != null &&
+        profilePicPath!.isNotEmpty &&
+        File(profilePicPath!).existsSync();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -108,7 +135,7 @@ class _DashboardTabState extends State<DashboardTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- HEADER SECTION ---
+              // --- HEADER SECTION (UPDATED) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -126,22 +153,34 @@ class _DashboardTabState extends State<DashboardTab> {
                       ),
                     ],
                   ),
+
+                  // --- TOMBOL PROFIL DENGAN FOTO ---
                   GestureDetector(
                     onTap: () {
                       final homeState = context.findAncestorStateOfType<_HomePageState>();
-                      homeState?._onItemTapped(4); // Navigasi ke Profile
+                      homeState?._onItemTapped(4); // Navigasi ke Tab Profile
                     },
                     child: Container(
                       width: 45, height: 45,
                       decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(color: Colors.grey.shade300),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6, offset: const Offset(0, 2))
-                          ]
+                        color: Colors.white,
+                        shape: BoxShape.circle, // Pastikan bulat sempurna
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6, offset: const Offset(0, 2))
+                        ],
+                        // Tampilkan gambar jika ada
+                        image: hasImage
+                            ? DecorationImage(
+                          image: FileImage(File(profilePicPath!)),
+                          fit: BoxFit.cover,
+                        )
+                            : null,
                       ),
-                      child: const Icon(Icons.person, color: Color(0xFF2D2D2D)),
+                      // Jika tidak ada gambar, tampilkan Icon default
+                      child: !hasImage
+                          ? const Icon(Icons.person, color: Color(0xFF2D2D2D))
+                          : null,
                     ),
                   )
                 ],
@@ -171,14 +210,14 @@ class _DashboardTabState extends State<DashboardTab> {
                         title: "Salad Sayur Sehat",
                         subtitle: "Resep segar & manfaat diet...",
                         color: Colors.green.withOpacity(0.1),
-                        icon: Icons.eco,
-                        iconColor: Colors.green[700]!,
+                        imageAsset: "lib/assets/salad.png",
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ArticleDetailPage(
                           title: "Salad Sayur Sehat",
                           category: "Healthy Food",
                           readTime: "5 min read",
                           icon: Icons.eco,
                           accentColor: Colors.green,
+                          imageAsset: "lib/assets/salads.png",
                           contentWidgets: [
                             const Text(
                               "Salad sayur adalah pilihan terbaik untuk kamu yang ingin hidup lebih sehat atau menurunkan berat badan. Makanan ini kaya akan serat, vitamin, dan mineral.",
@@ -237,6 +276,7 @@ class _DashboardTabState extends State<DashboardTab> {
                         title: "Jus Detox Alami",
                         subtitle: "Resep booster imun & energi...",
                         color: Colors.orange.withOpacity(0.1),
+                        imageAsset: "lib/assets/jus.png",
                         icon: Icons.local_drink,
                         iconColor: Colors.orange[800]!,
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ArticleDetailPage(
@@ -245,6 +285,7 @@ class _DashboardTabState extends State<DashboardTab> {
                           readTime: "3 min read",
                           icon: Icons.local_drink,
                           accentColor: Colors.orange,
+                          imageAsset: "lib/assets/jus.png",
                           contentWidgets: [
                             const Text(
                               "Merasa lelah atau kulit kusam? Jus buah dan sayur murni bisa menjadi cara cepat untuk menyerap nutrisi dan mendetoks tubuh dari racun.",
@@ -302,12 +343,14 @@ class _DashboardTabState extends State<DashboardTab> {
                         color: Colors.redAccent.withOpacity(0.1),
                         icon: Icons.apple,
                         iconColor: Colors.redAccent,
+                        imageAsset: "lib/assets/buah.png",
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ArticleDetailPage(
                           title: "Super Fruits Guide",
                           category: "Nutrition Fact",
                           readTime: "4 min read",
                           icon: Icons.apple,
                           accentColor: Colors.redAccent,
+                          imageAsset: "lib/assets/buah.png",
                           contentWidgets: [
                             const Text(
                               "Tidak semua buah diciptakan sama. Saat diet, pilihlah buah dengan indeks glikemik rendah namun tinggi serat untuk menjaga rasa kenyang lebih lama.",
@@ -390,12 +433,14 @@ class _DashboardTabState extends State<DashboardTab> {
               const SizedBox(height: 16),
 
               // 1. FISIK (Orange)
-              _buildGoalCard(
-                  title: "Physical Activity",
-                  subtitle: "Cardio, Strength, & Stretch",
-                  icon: Icons.fitness_center_rounded,
-                  // HANYA BUTUH SATU WARNA UTAMA
-                  iconThemeColor: primaryOrange,
+            _buildGoalCard(
+                title: "Physical Activity",
+                subtitle: "Cardio, Strength, & Stretch",
+
+                // [BARU] Memanggil gambar aset
+                imageAsset: "lib/assets/physical.png",
+
+                iconThemeColor: primaryOrange,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Physical Mission", color: primaryOrange,
                       missions: [
@@ -414,8 +459,8 @@ class _DashboardTabState extends State<DashboardTab> {
               _buildGoalCard(
                   title: "Hydration Master",
                   subtitle: "Target: 2000ml Water Intake",
-                  icon: Icons.water_drop_rounded,
                   iconThemeColor: Colors.blue,
+                  imageAsset: "lib/assets/minum.png",
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Hydration Mission", color: Colors.blue,
                       missions: [
@@ -434,8 +479,8 @@ class _DashboardTabState extends State<DashboardTab> {
               _buildGoalCard(
                   title: "Zen Mindfulness",
                   subtitle: "Meditation & Gratitude",
-                  icon: Icons.spa_rounded,
                   iconThemeColor: premiumPurple,
+                  imageAsset: "lib/assets/mindd.png",
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Mindfulness", color: premiumPurple,
                       missions: [
@@ -454,8 +499,8 @@ class _DashboardTabState extends State<DashboardTab> {
               _buildGoalCard(
                   title: "Deep Sleep Ritual",
                   subtitle: "Quality Rest Preparation",
-                  icon: Icons.nights_stay_rounded,
                   iconThemeColor: deepIndigo,
+                  imageAsset: "lib/assets/sleep.png",
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Sleep Hygiene", color: deepIndigo,
                       missions: [
@@ -567,10 +612,34 @@ class _DashboardTabState extends State<DashboardTab> {
     required String title,
     required String subtitle,
     required Color color,
-    required IconData icon,
-    required Color iconColor,
+    IconData? icon,        // [UBAH] Jadi Nullable (boleh kosong)
+    Color? iconColor,      // [UBAH] Jadi Nullable
+    String? imageAsset,    // [BARU] Tambah parameter ini
     required VoidCallback onTap
   }) {
+    Widget boxContent;
+
+    if (imageAsset != null) {
+      // JIKA GAMBAR: Render gambar full menggunakan DecorationImage
+      boxContent = Container(
+        width: 60, height: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          image: DecorationImage(
+            image: AssetImage(imageAsset),
+            fit: BoxFit.cover, // Agar gambar full mengisi kotak
+          ),
+          // Tidak ada properti 'color' di sini, jadi backgroundnya transparan/gambar itu sendiri
+        ),
+      );
+    } else {
+      // JIKA ICON: Render seperti biasa dengan background warna
+      boxContent = Container(
+          width: 60, height: 60,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, size: 30, color: iconColor)
+      );
+    }
     return GestureDetector(
         onTap: onTap,
         child: Container(
@@ -582,14 +651,9 @@ class _DashboardTabState extends State<DashboardTab> {
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 4))]
             ),
             child: Row(children: [
-              // --- BAGIAN INI DITAMBAHKAN HERO ---
               Hero(
-                tag: title, // Tag harus unik (kita pakai judul artikel)
-                child: Container(
-                    width: 60, height: 60,
-                    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
-                    child: Icon(icon, size: 30, color: iconColor)
-                ),
+                tag: title,
+                child: boxContent,
               ),
               // ------------------------------------
 
@@ -610,8 +674,9 @@ class _DashboardTabState extends State<DashboardTab> {
   Widget _buildGoalCard({
     required String title,
     required String subtitle,
-    required IconData icon,
-    required Color iconThemeColor, // Hanya butuh satu warna tema
+    IconData? icon,
+    required Color iconThemeColor,
+    String? imageAsset,// Hanya butuh satu warna tema
     required VoidCallback onTap
   }) {
     return GestureDetector(
@@ -632,17 +697,31 @@ class _DashboardTabState extends State<DashboardTab> {
                 ]
             ),
             child: Row(children: [
-              // --- BAGIAN ICON YANG DIUBAH JADI SIMPEL ---
+              // --- ICON/IMAGE BOX ---
+              // KODE BARU (YANG DIRUBAH)
               Container(
                   width: 50, height: 50,
                   decoration: BoxDecoration(
-                    // Latar belakang: Warna tema dengan opasitas sangat rendah (tinted)
-                    color: iconThemeColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14), // Squircle halus
-                    // TIDAK ADA GRADASI, TIDAK ADA GLOW BERLEBIHAN
+                    // PERUBAHAN 1: Logika Warna Background
+                    // Jika ada gambar, warnanya transparan. Jika tidak (pakai icon), pakai warna tema.
+                    color: imageAsset != null ? Colors.transparent : iconThemeColor.withOpacity(0.12),
+
+                    borderRadius: BorderRadius.circular(14),
+
+                    // PERUBAHAN 2: Logika Gambar Full
+                    // Menggunakan DecorationImage agar gambar mengisi penuh kotak
+                    image: imageAsset != null
+                        ? DecorationImage(
+                      image: AssetImage(imageAsset),
+                      fit: BoxFit.cover, // Full Cover
+                    )
+                        : null,
                   ),
-                  // Ikonnya sendiri berwarna solid sesuai tema
-                  child: Icon(icon, color: iconThemeColor, size: 26)
+                  // PERUBAHAN 3: Child hanya untuk Icon
+                  // Jika gambar sudah di-set di decoration, child-nya null.
+                  child: imageAsset == null
+                      ? Icon(icon, color: iconThemeColor, size: 26)
+                      : null
               ),
               // -------------------------------------------
 
@@ -678,6 +757,7 @@ class ArticleDetailPage extends StatelessWidget {
   final IconData icon;
   final Color accentColor;
   final List<Widget> contentWidgets;
+  final String? imageAsset;
 
   const ArticleDetailPage({
     Key? key,
@@ -687,6 +767,7 @@ class ArticleDetailPage extends StatelessWidget {
     required this.icon,
     required this.accentColor,
     required this.contentWidgets,
+    this.imageAsset,
   }) : super(key: key);
 
   @override
@@ -720,39 +801,57 @@ class ArticleDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // HERO SECTION
-            Container(
-              width: double.infinity, height: 220,
-              decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // --- PERUBAHAN DI SINI: BUNGKUS ICON DENGAN HERO ---
-                  Hero(
-                    tag: title, // Tag harus sama dengan yang di Dashboard
-                    child: Icon(icon, size: 100, color: accentColor.withOpacity(0.8)),
-                  ),
-                  // ---------------------------------------------------
+            Hero(
+              tag: title, // Tag animasi transisi
+              child: Container(
+                width: double.infinity,
+                height: 250, // Sedikit lebih tinggi agar gambar terlihat jelas
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  // LOGIKA: Jika ada gambar, warnanya transparan. Jika tidak, pakai warna aksen.
+                  color: imageAsset != null ? Colors.transparent : accentColor.withOpacity(0.1),
 
-                  Positioned(
-                    bottom: 16, right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
-                      ),
-                      child: Row(children: [
-                        Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text(readTime, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-                      ]),
-                    ),
+                  // LOGIKA GAMBAR FULL BACKGROUND
+                  image: imageAsset != null
+                      ? DecorationImage(
+                    image: AssetImage(imageAsset!),
+                    fit: BoxFit.cover, // KUNCI: Gambar memenuhi seluruh kotak
                   )
-                ],
+                      : null,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Jika TIDAK ADA gambar, tampilkan ICON (Fallback)
+                    if (imageAsset == null)
+                      Icon(icon, size: 100, color: accentColor.withOpacity(0.8)),
+
+                    // Badge Waktu Baca (Tetap di pojok kanan bawah)
+                    Positioned(
+                      bottom: 16, right: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)],
+                        ),
+                        child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              // Material widget dibutuhkan agar teks tidak ada garis bawah kuning (karena di dalam Hero)
+                              Material(
+                                  color: Colors.transparent,
+                                  child: Text(readTime, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[800]))
+                              ),
+                            ]
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -979,4 +1078,3 @@ class _MissionListPageState extends State<MissionListPage> {
     );
   }
 }
-
