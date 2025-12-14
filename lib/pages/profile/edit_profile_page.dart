@@ -8,7 +8,6 @@ const Color darkNavy = Color(0xFF1E293B);
 const Color cardSurface = Color(0xFFF6F8FA);
 
 class EditProfilePage extends StatefulWidget {
-  // [PERBAIKAN DI SINI] Ubah tipe data jadi dynamic agar cocok dengan ProfilePage
   final Map<String, dynamic> currentData;
 
   const EditProfilePage({Key? key, required this.currentData}) : super(key: key);
@@ -36,7 +35,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    // [SAFETY] Gunakan .toString() untuk jaga-jaga jika data bukan String murni
     nameCtrl = TextEditingController(text: widget.currentData['fullName']?.toString() ?? '');
     nicknameCtrl = TextEditingController(text: widget.currentData['nickName']?.toString() ?? '');
     ageCtrl = TextEditingController(text: widget.currentData['age']?.toString() ?? '');
@@ -65,35 +63,136 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void _saveData() {
+  // --- 1. LOGIKA TOMBOL DONE (Updated) ---
+  void _handleDoneButton() {
+    // Validasi form dulu, kalau aman baru munculin dialog
     if (_formKey.currentState!.validate()) {
-      // Logic Path Gambar
-      String finalImagePath = _imageFile?.path ?? widget.currentData['profilePicturePath']?.toString() ?? '';
-
-      // Kirim data sebagai dynamic agar ProfilePage bisa menerimanya
-      Map<String, dynamic> newData = {
-        'fullName': nameCtrl.text,
-        'nickName': nicknameCtrl.text,
-        'age': ageCtrl.text,
-        'height': heightCtrl.text,
-        'weight': weightCtrl.text,
-        'email': emailCtrl.text,
-        'phone': phoneCtrl.text,
-        'status': selectedStatus ?? 'Mahasiswa',
-        'profilePicturePath': finalImagePath,
-      };
-
-      Navigator.pop(context, newData);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: Colors.green, content: Text('Changes saved successfully'))
-      );
+      _showSaveConfirmation(context);
     }
+  }
+
+  // --- 2. TAMPILAN DIALOG KONFIRMASI ---
+  void _showSaveConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 10)),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon Header (Orange)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primaryOrange.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.save_as_rounded, size: 32, color: primaryOrange),
+                ),
+                const SizedBox(height: 20),
+
+                // Title
+                const Text(
+                  "Save Changes?",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: darkNavy),
+                ),
+                const SizedBox(height: 8),
+
+                // Subtitle
+                Text(
+                  "Are you sure you want to update your profile information?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                ),
+                const SizedBox(height: 24),
+
+                // Buttons
+                Row(
+                  children: [
+                    // Tombol Cancel
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text(
+                            "Cancel",
+                            style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600)
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Tombol Yes, Save
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // 1. Tutup Dialog
+                          Navigator.pop(context);
+
+                          // 2. Proses Simpan Data
+                          _performSave();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryOrange,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text("Save Changes", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // --- 3. PROSES SIMPAN DATA (Dipindah ke sini) ---
+  void _performSave() {
+    String finalImagePath = _imageFile?.path ?? widget.currentData['profilePicturePath']?.toString() ?? '';
+
+    Map<String, dynamic> newData = {
+      'fullName': nameCtrl.text,
+      'nickName': nicknameCtrl.text,
+      'age': ageCtrl.text,
+      'height': heightCtrl.text,
+      'weight': weightCtrl.text,
+      'email': emailCtrl.text,
+      'phone': phoneCtrl.text,
+      'status': selectedStatus ?? 'Mahasiswa',
+      'profilePicturePath': finalImagePath,
+    };
+
+    // Kembali ke halaman Profile dengan membawa data baru
+    Navigator.pop(context, newData);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(backgroundColor: Colors.green, content: Text('Changes saved successfully'))
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Logic Tampilan Gambar
     String? oldPath = widget.currentData['profilePicturePath']?.toString();
     bool hasOldImage = oldPath != null && oldPath.isNotEmpty && File(oldPath).existsSync();
 
@@ -120,7 +219,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: TextButton(
-              onPressed: _saveData,
+              // Panggil fungsi handleDoneButton (yang memunculkan dialog)
+              onPressed: _handleDoneButton,
               child: const Text("Done", style: TextStyle(color: primaryOrange, fontWeight: FontWeight.bold, fontSize: 14)),
             ),
           )
