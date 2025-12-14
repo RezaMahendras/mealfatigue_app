@@ -14,43 +14,89 @@ class RecipeDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ============================================================
+    // 1. LOGIKA PENENTUAN GAMBAR (AUTO DETECT JUDUL)
+    // ============================================================
+    String imagePath = recipeData['image'] ?? '';
+    String titleLower = recipeData['title'].toString().toLowerCase();
+
+    // Jika data gambar kosong, kita isi manual berdasarkan Judul Resep
+    if (imagePath.isEmpty) {
+      if (titleLower.contains('brokoli')) {
+        imagePath = "https://d1vbn70lmn1nqe.cloudfront.net/prod/wp-content/uploads/2023/12/28084722/Ini-Cara-Membuat-dan-Resep-Tumis-Brokoli-yang-Mudah-dibuat-di-rumah.jpg.webp";
+      } else if (titleLower.contains('avocado') || titleLower.contains('alpukat')) {
+        imagePath = "https://cdn.yummy.co.id/content-images/images/20220324/XIejvq5IOtSW9JIQe2KZ0tP0tUIKxASR-31363438313130393936d41d8cd98f00b204e9800998ecf8427e.jpg?x-oss-process=image/resize,w_600,h_600,m_fill,image/format,webp";
+      }
+    }
+
+    // Tentukan Tipe Image Provider (Network / Asset)
+    ImageProvider imageProvider;
+    if (imagePath.startsWith('http')) {
+      imageProvider = NetworkImage(imagePath);
+    } else if (imagePath.isNotEmpty) {
+      imageProvider = AssetImage(imagePath);
+    } else {
+      imageProvider = const NetworkImage("https://via.placeholder.com/400x300?text=No+Image");
+    }
+
+    // ============================================================
+    // 2. FUNGSI NAVIGASI KE VIDEO (Reusable)
+    // ============================================================
+    void _playVideo() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VideoTutorialPage(
+            videoAssetPath: recipeData['videoPath'] ?? 'assets/videos/tutorial_brokoli.mp4',
+            recipeTitle: recipeData['title'],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: Colors.white, // Latar Putih
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- 1. HEADER IMAGE & BACK BUTTON ---
+              // --- HEADER IMAGE & BACK BUTTON ---
               Stack(
                 children: [
-                  // Placeholder Gambar Makanan
-                  Container(
-                    width: double.infinity,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      color: cardSurface,
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
-                      image: const DecorationImage(
-                        // Gambar dummy
-                        image: NetworkImage("https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=2000&auto=format&fit=crop"),
-                        fit: BoxFit.cover,
+                  // A. GAMBAR BISA DIKLIK (GestureDetector)
+                  GestureDetector(
+                    onTap: _playVideo, // [BARU] Klik gambar -> Putar Video
+                    child: Container(
+                      width: double.infinity,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: cardSurface,
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
+                        image: DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                    // Fallback jika gambar gagal
-                    child: Center(child: Icon(Icons.restaurant_menu, size: 50, color: Colors.grey.withOpacity(0.5))),
                   ),
-                  // Visual Tombol Play di Tengah Gambar
+
+                  // B. VISUAL TOMBOL PLAY DI TENGAH
+                  // Menggunakan IgnorePointer agar jika user klik pas di ikon play,
+                  // sentuhannya tembus ke GestureDetector gambar di belakangnya.
                   Positioned.fill(
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
-                        child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+                    child: IgnorePointer(
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
+                          child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+                        ),
                       ),
                     ),
                   ),
-                  // Tombol Back
+
+                  // C. TOMBOL BACK
                   Positioned(
                     top: 16,
                     left: 16,
@@ -75,10 +121,10 @@ class RecipeDetailPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- 2. JUDUL & RATING ---
+                    // --- JUDUL & RATING ---
                     Text(
                       recipeData['title'],
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: darkNavy), // Font Navy
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: darkNavy),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -87,31 +133,31 @@ class RecipeDetailPage extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text("${recipeData['time']}  •  ${recipeData['difficulty']}", style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
                         const SizedBox(width: 12),
-                        const Icon(Icons.star, size: 16, color: primaryOrange), // Bintang Oranye
+                        const Icon(Icons.star, size: 16, color: primaryOrange),
                         const SizedBox(width: 4),
                         Text(recipeData['rating'], style: const TextStyle(fontWeight: FontWeight.bold, color: darkNavy)),
                       ],
                     ),
                     const SizedBox(height: 24),
 
-                    // --- 3. NUTRISI INFO (Style Modern) ---
+                    // --- NUTRISI INFO ---
                     Row(
                       children: [
-                        _buildNutritionBox("Kalori", recipeData['cal'], primaryOrange), // Teks Oranye
+                        _buildNutritionBox("Kalori", recipeData['cal'], primaryOrange),
                         const SizedBox(width: 16),
-                        _buildNutritionBox("Protein", recipeData['protein'], darkNavy), // Teks Navy
+                        _buildNutritionBox("Protein", recipeData['protein'], darkNavy),
                       ],
                     ),
                     const SizedBox(height: 24),
 
-                    // --- 4. BAHAN - BAHAN ---
+                    // --- BAHAN - BAHAN ---
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade200), // Border tipis
+                          border: Border.all(color: Colors.grey.shade200),
                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
                       ),
                       child: Column(
@@ -119,25 +165,27 @@ class RecipeDetailPage extends StatelessWidget {
                         children: [
                           const Text("Bahan - bahan", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkNavy)),
                           const SizedBox(height: 12),
-                          // Generate list bahan
-                          ...List.generate(recipeData['ingredients'].length, (index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10.0),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.circle, size: 8, color: primaryOrange.withOpacity(0.6)), // Bullet Oranye
-                                  const SizedBox(width: 10),
-                                  Text(recipeData['ingredients'][index], style: const TextStyle(fontSize: 14, color: Color(0xFF4A4A4A), fontWeight: FontWeight.w500)),
-                                ],
-                              ),
-                            );
-                          }),
+                          if (recipeData['ingredients'] != null)
+                            ...List.generate(recipeData['ingredients'].length, (index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10.0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.circle, size: 8, color: primaryOrange.withOpacity(0.6)),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(recipeData['ingredients'][index], style: const TextStyle(fontSize: 14, color: Color(0xFF4A4A4A), fontWeight: FontWeight.w500)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
 
-                    // --- 5. CARA MEMASAK (Preview) ---
+                    // --- CARA MEMASAK ---
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -152,57 +200,46 @@ class RecipeDetailPage extends StatelessWidget {
                         children: [
                           const Text("Cara Memasak", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkNavy)),
                           const SizedBox(height: 12),
-                          // Generate list langkah
-                          ...List.generate(recipeData['steps'].length, (index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Nomer Langkah dengan lingkaran kecil
-                                  Container(
-                                    width: 24, height: 24,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(color: cardSurface, borderRadius: BorderRadius.circular(8)),
-                                    child: Text("${index + 1}", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: darkNavy)),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(recipeData['steps'][index], style: const TextStyle(fontSize: 14, color: Color(0xFF4A4A4A), height: 1.5)),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
+                          if (recipeData['steps'] != null)
+                            ...List.generate(recipeData['steps'].length, (index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 24, height: 24,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(color: cardSurface, borderRadius: BorderRadius.circular(8)),
+                                      child: Text("${index + 1}", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: darkNavy)),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(recipeData['steps'][index], style: const TextStyle(fontSize: 14, color: Color(0xFF4A4A4A), height: 1.5)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
                         ],
                       ),
                     ),
                     const SizedBox(height: 30),
 
-                    // --- 6. TOMBOL AKSI ---
+                    // --- TOMBOL AKSI ---
 
-                    // Tombol Tonton Video (Secondary Style: Putih Border Oranye)
+                    // 1. Tombol Tonton Video
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => VideoTutorialPage(
-                                videoAssetPath: recipeData['videoPath'] ?? 'assets/videos/tutorial_brokoli.mp4',
-                                recipeTitle: recipeData['title'],
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: _playVideo, // [UPDATED] Menggunakan fungsi yang sama dengan gambar
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: primaryOrange,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                side: const BorderSide(color: primaryOrange) // Border Oranye
+                                side: const BorderSide(color: primaryOrange)
                             ),
                             elevation: 0
                         ),
@@ -219,7 +256,7 @@ class RecipeDetailPage extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // Tombol Mulai Memasak (Primary Style: Oranye Solid)
+                    // 2. Tombol Mulai Memasak
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -261,15 +298,13 @@ class RecipeDetailPage extends StatelessWidget {
     );
   }
 
-  // Widget Helper untuk Kotak Nutrisi
   Widget _buildNutritionBox(String label, String value, Color valueColor) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: cardSurface, // Abu-abu muda
+          color: cardSurface,
           borderRadius: BorderRadius.circular(16),
-          // Tidak ada border agar terlihat clean
         ),
         child: Column(
           children: [
