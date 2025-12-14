@@ -22,16 +22,27 @@ class _SignupPageState extends State<SignupPage> {
   static const primaryOrange = Color(0xFFFF6B4A);
 
   void _handleSignup() async {
+    // Mengambil text dan menghapus spasi di awal/akhir
     String email = emailCtrl.text.trim();
     String pass = passCtrl.text.trim();
     String confirm = confirmCtrl.text.trim();
 
+    // 1. Validasi Input Kosong
     if (email.isEmpty || pass.isEmpty || confirm.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
+    // 2. Validasi Email harus @gmail.com (BARU DITAMBAHKAN)
+    // Menggunakan toLowerCase() agar user yang mengetik @Gmail.com tetap diterima
+    if (!email.toLowerCase().endsWith('@gmail.com')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration is restricted to @gmail.com only')));
+      return;
+    }
+
+    // 3. Validasi Password Match
     if (pass != confirm) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Passwords do not match')));
@@ -137,7 +148,9 @@ class _SignupPageState extends State<SignupPage> {
                 // Form Input Email
                 TextField(
                     controller: emailCtrl,
-                    decoration: inputDecoration.copyWith(hintText: 'Email')
+                    // Mengubah keyboard type agar tombol @ muncul lebih mudah
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: inputDecoration.copyWith(hintText: 'Email (@gmail.com)')
                 ),
                 const SizedBox(height: 12),
 
