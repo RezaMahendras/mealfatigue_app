@@ -27,25 +27,40 @@ class _SignupPageState extends State<SignupPage> {
     String pass = passCtrl.text.trim();
     String confirm = confirmCtrl.text.trim();
 
+    // Helper untuk menampilkan SnackBar
+    void showSnackbar(String message, {Color color = Colors.black}) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: color, content: Text(message)));
+    }
+
     // 1. Validasi Input Kosong
     if (email.isEmpty || pass.isEmpty || confirm.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill all fields')));
+      showSnackbar('Please fill all fields');
       return;
     }
 
-    // 2. Validasi Email harus @gmail.com (BARU DITAMBAHKAN)
-    // Menggunakan toLowerCase() agar user yang mengetik @Gmail.com tetap diterima
+    // 2. Validasi Email harus @gmail.com
     if (!email.toLowerCase().endsWith('@gmail.com')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration is restricted to @gmail.com only')));
+      showSnackbar('Registration is restricted to @gmail.com only');
       return;
     }
 
-    // 3. Validasi Password Match
+    // 3. Validasi Panjang Password (MINIMAL 8 KARAKTER)
+    if (pass.length < 8) {
+      showSnackbar('Password must be at least 8 characters long');
+      return;
+    }
+
+    // 4. Validasi Password Mengandung Angka (BARU DITAMBAHKAN)
+    // Menggunakan Regular Expression: r'.*[0-9].*' berarti string harus mengandung setidaknya satu angka (0-9).
+    if (!pass.contains(RegExp(r'[0-9]'))) {
+      showSnackbar('Password must contain at least one number');
+      return;
+    }
+
+    // 5. Validasi Password Match
     if (pass != confirm) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwords do not match')));
+      showSnackbar('Passwords do not match');
       return;
     }
 
@@ -54,18 +69,15 @@ class _SignupPageState extends State<SignupPage> {
     });
 
     try {
+      // Menambah sedikit delay untuk feedback UI
       await Future.delayed(const Duration(milliseconds: 500));
 
       await DatabaseHelper.instance.registerUser(email, pass);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              backgroundColor: Colors.green,
-              content: Text('Registration Success! Please Login.')
-          )
-      );
-      // Ganti navigasi agar pengguna langsung dibawa ke halaman login setelah berhasil
+      showSnackbar('Registration Success! Please Login.', color: Colors.green);
+
+      // Navigasi ke halaman login setelah berhasil
       Navigator.pushReplacementNamed(context, '/login');
 
     } catch (e) {
@@ -75,12 +87,13 @@ class _SignupPageState extends State<SignupPage> {
         message = 'Email already registered!';
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(backgroundColor: Colors.red, content: Text(message)));
+      showSnackbar(message, color: Colors.red);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  // ... (dispose, _buildPasswordSuffixIcon, dan build tetap sama)
 
   @override
   void dispose() {
@@ -159,7 +172,7 @@ class _SignupPageState extends State<SignupPage> {
                     controller: passCtrl,
                     obscureText: obscurePass,
                     decoration: inputDecoration.copyWith(
-                        hintText: 'Password',
+                        hintText: 'Password (Min 8 characters, with a number)',
                         suffixIcon: _buildPasswordSuffixIcon(
                             obscurePass,
                                 () => setState(() => obscurePass = !obscurePass)
