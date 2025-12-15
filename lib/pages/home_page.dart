@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
                 icon: Icon(Icons.home_filled),
                 label: 'Home' // Label wajib ada, tidak boleh null
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.storefront_outlined), label: 'KosLife'),
+            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'KosLife'),
             BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Chef'),
             BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Love'),
             BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
