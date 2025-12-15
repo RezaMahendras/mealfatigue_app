@@ -20,7 +20,7 @@ class DatabaseHelper {
     // Versi 5
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -75,6 +75,17 @@ class DatabaseHelper {
         print("Error adding column (mungkin sudah ada): $e");
       }
     }
+
+    // Migrasi Versi 6 (KosLife Smart Tip)
+    if (oldVersion < 6) {
+      try {
+        await db.execute(
+            "ALTER TABLE koslife_budgets ADD COLUMN smart_tip TEXT"
+        );
+      } catch (e) {
+        print("smart_tip column mungkin sudah ada: $e");
+      }
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -93,7 +104,8 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         total_budget INTEGER,
         remaining_budget INTEGER,
-        created_at TEXT
+        smart_tip TEXT,
+        created_at TEXT 
       )
     ''');
 
@@ -230,11 +242,12 @@ class DatabaseHelper {
   }
 
   // --- KOSLIFE METHODS ---
-  Future<int> createBudget(int total, int remaining) async {
+  Future<int> createBudget(int total, int remaining, String smartTip) async {
     final db = await instance.database;
     final data = {
       'total_budget': total,
       'remaining_budget': remaining,
+      'smart_tip': smartTip,
       'created_at': DateTime.now().toIso8601String(),
     };
     return await db.insert('koslife_budgets', data);
@@ -258,6 +271,18 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query('koslife_budgets', orderBy: 'id DESC', limit: 1);
     if (maps.isNotEmpty) return maps.first;
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> getBudgetById(int budgetId) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'koslife_budgets',
+      where: 'id = ?',
+      whereArgs: [budgetId],
+      limit: 1,
+    );
+    if (result.isNotEmpty) return result.first;
     return null;
   }
 
