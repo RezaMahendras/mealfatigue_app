@@ -154,10 +154,19 @@ class _KosLifeSetupPageState extends State<KosLifeSetupPage> {
                 ),
                 child: isProcessing
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                  'Hitung Belanjaan',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                    : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.auto_awesome, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Hitung Belanjaan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          )
+                    )
+                      ]
                 ),
               ),
             ),
@@ -182,19 +191,32 @@ class _KosLifeSetupPageState extends State<KosLifeSetupPage> {
   );
 
   Widget _buildCurrencyField() => TextField(
-    controller: _budgetController,
-    keyboardType: TextInputType.number,
-    inputFormatters: [CurrencyInputFormatter()],
-    decoration: InputDecoration(
-      prefixText: 'Rp ',
-      filled: true,
-      fillColor: cardSurface,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
+  controller: _budgetController,
+  keyboardType: TextInputType.number,
+  inputFormatters: [CurrencyInputFormatter()],
+  style: const TextStyle(
+    fontWeight: FontWeight.bold,
+    color: darkNavy,
+  ),
+  decoration: InputDecoration(
+    prefixText: 'Rp ',
+    prefixStyle: const TextStyle(
+      color: primaryOrange,
+      fontWeight: FontWeight.bold,
     ),
-  );
+    hintText: 'Contoh: 150.000',
+    hintStyle: TextStyle(color: Colors.grey),
+    filled: true,
+    fillColor: cardSurface,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    contentPadding:
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  ),
+);
+
 
   Widget _buildInputField(TextEditingController controller) => TextField(
     controller: controller,
