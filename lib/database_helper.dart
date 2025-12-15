@@ -17,10 +17,10 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    // Versi 5
+    // Versi diperbarui menjadi 7
     return await openDatabase(
       path,
-      version: 6,
+      version: 7, // <--- VERSI DIPERBARUI
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -84,6 +84,23 @@ class DatabaseHelper {
         );
       } catch (e) {
         print("smart_tip column mungkin sudah ada: $e");
+      }
+    }
+
+    // Migrasi Versi 7 (Daily Missions) <--- BARU DITAMBAHKAN
+    if (oldVersion < 7) {
+      try {
+        await db.execute('''
+          CREATE TABLE daily_missions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mission_key TEXT NOT NULL,
+            date TEXT NOT NULL,
+            is_completed INTEGER NOT NULL,
+            UNIQUE(mission_key, date)
+          )
+        ''');
+      } catch (e) {
+        print("Error creating daily_missions table: $e");
       }
     }
   }
@@ -159,6 +176,17 @@ class DatabaseHelper {
         weight TEXT,
         status TEXT,
         profilePicturePath TEXT 
+      )
+    ''');
+
+    // 6. TABEL DAILY MISSIONS <--- BARU DITAMBAHKAN
+    await db.execute('''
+      CREATE TABLE daily_missions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mission_key TEXT NOT NULL,
+        date TEXT NOT NULL,
+        is_completed INTEGER NOT NULL,
+        UNIQUE(mission_key, date)
       )
     ''');
 
@@ -480,5 +508,67 @@ class DatabaseHelper {
     } catch (e) {
       return "Error: $e";
     }
+  }
+
+  // --- DAILY MISSION METHODS (NEW FEATURE) --- <--- BARU DITAMBAHKAN
+
+  // Menentukan kunci unik untuk setiap misi.
+  String getMissionKey(String categoryTitle, int index) {
+    // Menghilangkan spasi dan konversi ke lowercase (e.g., 'Physical Mission' -> 'physicalmission')
+    final category = categoryTitle.toLowerCase().replaceAll(' ', '');
+    return '${category}_$index';
+  }
+
+  // 1. Menyimpan atau Memperbarui Status Misi
+  Future<void> updateMissionStatus(String missionKey, bool isCompleted) async {
+    final db = await instance.database;
+    // Format YYYY-MM-DD
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+
+    final data = {
+      'mission_key': missionKey,
+      'date': today,
+      'is_completed': isCompleted ? 1 : 0,
+    };
+
+    // Coba perbarui entri yang sudah ada
+    int count = await db.update(
+      'daily_missions',
+      data,
+      where: 'mission_key = ? AND date = ?',
+      whereArgs: [missionKey, today],
+    );
+
+    // Jika tidak ada baris yang terpengaruh, berarti itu entri baru, lakukan insert
+    if (count == 0) {
+      await db.insert(
+        'daily_missions',
+        data,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+  }
+
+  // 2. Mengambil Status Misi untuk Hari Ini
+  // Mengembalikan Map<MissionKey, isCompleted>
+  Future<Map<String, bool>> getTodayMissionStatuses() async {
+    final db = await instance.database;
+    // Format YYYY-MM-DD
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+
+    final result = await db.query(
+      'daily_missions',
+      where: 'date = ?',
+      whereArgs: [today],
+    );
+
+    final Map<String, bool> statuses = {};
+    for (var row in result) {
+      final key = row['mission_key'] as String;
+      // Konversi integer (1 atau 0) menjadi boolean
+      final isCompleted = (row['is_completed'] as int) == 1;
+      statuses[key] = isCompleted;
+    }
+    return statuses;
   }
 }
