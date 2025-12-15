@@ -2,21 +2,34 @@ import 'package:intl/intl.dart';
 
 class CurrencyFormat {
   static String convertToIdr(dynamic number, int decimalDigit) {
-    NumberFormat currencyFormatter = NumberFormat.currency(
+    final formatter = NumberFormat.currency(
       locale: 'id',
       symbol: 'Rp ',
       decimalDigits: decimalDigit,
     );
-    return currencyFormatter.format(number);
+    return formatter.format(number);
   }
 
   static int parseIdr(String idrString) {
-    String cleaned = idrString.replaceAll(RegExp(r'[^0-9]'), '');
+    final cleaned = idrString.replaceAll(RegExp(r'[^0-9]'), '');
     if (cleaned.isEmpty) return 0;
     return int.parse(cleaned);
   }
 }
 
+/// ===============================
+/// ENUM KONDISI (WAJIB ADA)
+/// ===============================
+enum KondisiSaatIni {
+  normal,
+  utsUas,
+  tanggalTua,
+  lagiHemat,
+}
+
+/// ===============================
+/// MASTER DATA BARANG
+/// ===============================
 class ShoppingMasterData {
   static final List<Map<String, dynamic>> essentials = [
     {'name': 'Beras 5kg', 'price': 65000},
@@ -33,51 +46,106 @@ class ShoppingMasterData {
     {'name': 'Susu UHT 1L', 'price': 19000},
     {'name': 'Roti Tawar', 'price': 14000},
     {'name': 'Kopi Instan', 'price': 15000},
-    {'name': 'Mie Instan (5pcs)', 'price': 15000},
+    {'name': 'Mie Instan (5 pcs)', 'price': 15000},
     {'name': 'Camilan', 'price': 10000},
     {'name': 'Minuman Ringan', 'price': 7000},
   ];
+}
 
-  static Map<String, dynamic> generatePlan(int totalMoney) {
-    int budgetMust = (totalMoney * 0.5).toInt();
-    int budgetAllow = (totalMoney * 0.3).toInt();
+/// ===============================
+/// DECISION ENGINE (INTI AI LOGIC)
+/// ===============================
+class KosLifeDecisionEngine {
+  static Map<String, dynamic> generatePlan(
+      int totalMoney,
+      KondisiSaatIni kondisi,
+      ) {
+    // Default rule
+    double mustRatio = 0.5;
+    double allowRatio = 0.3;
+    double budgetLimit = 1.0;
+    String smartTip = '';
 
+    /// ===============================
+    /// RULE BERDASARKAN KONDISI
+    /// ===============================
+    switch (kondisi) {
+      case KondisiSaatIni.normal:
+        smartTip = 'Belanja seimbang sesuai kebutuhan harian.';
+        break;
+
+      case KondisiSaatIni.utsUas:
+        mustRatio = 0.6;
+        allowRatio = 0.25;
+        smartTip =
+        'UTS/UAS: prioritaskan makanan praktis agar hemat waktu dan energi.';
+        break;
+
+      case KondisiSaatIni.tanggalTua:
+        mustRatio = 0.7;
+        allowRatio = 0.2;
+        budgetLimit = 0.85;
+        smartTip =
+        'Tanggal tua: fokus kebutuhan pokok dan kurangi belanja tambahan.';
+        break;
+
+      case KondisiSaatIni.lagiHemat:
+        mustRatio = 0.65;
+        allowRatio = 0.2;
+        budgetLimit = 0.8;
+        smartTip =
+        'Mode hemat aktif: kurangi pengeluaran tidak wajib dan simpan sisa uang.';
+        break;
+    }
+
+    /// ===============================
+    /// HITUNG BATAS BUDGET
+    /// ===============================
+    final int effectiveBudget = (totalMoney * budgetLimit).toInt();
+    final int budgetMust = (effectiveBudget * mustRatio).toInt();
+    final int budgetAllow = (effectiveBudget * allowRatio).toInt();
+
+    /// ===============================
+    /// PILIH BARANG
+    /// ===============================
     List<Map<String, dynamic>> mustBuy = [];
     List<Map<String, dynamic>> canBuy = [];
+
     int currentMust = 0;
     int currentAllow = 0;
 
-    // 1. Pilih Barang Wajib
-    for (var item in essentials) {
-      // PERBAIKAN DI SINI: Cast ke 'int'
-      int price = item['price'] as int;
-
+    // Barang wajib
+    for (final item in ShoppingMasterData.essentials) {
+      final int price = item['price'] as int;
       if (currentMust + price <= budgetMust) {
         mustBuy.add({...item, 'category': 'must'});
         currentMust += price;
       }
     }
 
-    // 2. Pilih Barang Boleh
-    for (var item in wants) {
-      // PERBAIKAN DI SINI: Cast ke 'int'
-      int price = item['price'] as int;
-
+    // Barang boleh
+    for (final item in ShoppingMasterData.wants) {
+      final int price = item['price'] as int;
       if (currentAllow + price <= budgetAllow) {
         canBuy.add({...item, 'category': 'allow'});
         currentAllow += price;
       }
     }
 
-    int totalSpent = currentMust + currentAllow;
-    int remaining = totalMoney - totalSpent;
+    /// ===============================
+    /// HASIL AKHIR
+    /// ===============================
+    final int totalSpent = currentMust + currentAllow;
+    final int remaining = totalMoney - totalSpent;
 
     return {
       'items': [...mustBuy, ...canBuy],
       'totalSpent': totalSpent,
       'remaining': remaining,
       'mustTotal': currentMust,
-      'allowTotal': currentAllow
+      'allowTotal': currentAllow,
+      'smartTip': smartTip,
+      'effectiveBudget': effectiveBudget,
     };
   }
 }
