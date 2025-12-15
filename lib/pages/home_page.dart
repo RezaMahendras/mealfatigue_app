@@ -432,30 +432,30 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
               const SizedBox(height: 16),
 
-              // 1. FISIK (Orange)
-            _buildGoalCard(
-                title: "Physical Activity",
-                subtitle: "Cardio, Strength, & Stretch",
+              // Di dalam _DashboardTabState.build()...
 
-                // [BARU] Memanggil gambar aset
-                imageAsset: "lib/assets/physical.png",
-
-                iconThemeColor: primaryOrange,
+// 1. FISIK (Orange)
+              _buildGoalCard(
+                  title: "Physical Activity",
+                  subtitle: "Cardio, Strength, & Stretch",
+                  imageAsset: "lib/assets/physical.png",
+                  iconThemeColor: primaryOrange,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Physical Mission", color: primaryOrange,
                       missions: [
-                        MissionItem(task: "Peregangan Pagi", subtitle: "5 menit peregangan otot", icon: Icons.accessibility_new),
-                        MissionItem(task: "Jalan Kaki Ringan", subtitle: "Minimal 3000 langkah", icon: Icons.directions_walk),
-                        MissionItem(task: "Push Up 10x", subtitle: "Kuatkan otot lengan & dada", icon: Icons.fitness_center),
-                        MissionItem(task: "Jumping Jacks", subtitle: "20 kali untuk kardio cepat", icon: Icons.bolt),
-                        MissionItem(task: "Squat 15x", subtitle: "Kencangkan otot kaki", icon: Icons.airline_seat_legroom_extra),
-                        MissionItem(task: "Plank 30 Detik", subtitle: "Latih otot perut", icon: Icons.timer),
-                        MissionItem(task: "Pendinginan", subtitle: "Tarik napas & rileks", icon: Icons.self_improvement),
+                        // MEMPERBAIKI ERROR CONSTRUCTOR: Tambahkan missionKey
+                        MissionItem(task: "Peregangan Pagi", subtitle: "5 menit peregangan otot", icon: Icons.accessibility_new, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 0)),
+                        MissionItem(task: "Jalan Kaki Ringan", subtitle: "Minimal 3000 langkah", icon: Icons.directions_walk, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 1)),
+                        MissionItem(task: "Push Up 10x", subtitle: "Kuatkan otot lengan & dada", icon: Icons.fitness_center, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 2)),
+                        MissionItem(task: "Jumping Jacks", subtitle: "20 kali untuk kardio cepat", icon: Icons.bolt, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 3)),
+                        MissionItem(task: "Squat 15x", subtitle: "Kencangkan otot kaki", icon: Icons.airline_seat_legroom_extra, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 4)),
+                        MissionItem(task: "Plank 30 Detik", subtitle: "Latih otot perut", icon: Icons.timer, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 5)),
+                        MissionItem(task: "Pendinginan", subtitle: "Tarik napas & rileks", icon: Icons.self_improvement, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 6)),
                       ]
                   )))
               ),
 
-              // 2. AIR (Blue)
+// 2. AIR (Blue)
               _buildGoalCard(
                   title: "Hydration Master",
                   subtitle: "Target: 2000ml Water Intake",
@@ -464,18 +464,19 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Hydration Mission", color: Colors.blue,
                       missions: [
-                        MissionItem(task: "Morning Glass", subtitle: "Bangun tidur (500ml)", icon: Icons.wb_sunny),
-                        MissionItem(task: "After Coffee", subtitle: "Netralkan kafein", icon: Icons.coffee),
-                        MissionItem(task: "Mid-Morning Sip", subtitle: "Jam 10:00 pagi", icon: Icons.watch_later),
-                        MissionItem(task: "Lunch Companion", subtitle: "Sebelum makan siang", icon: Icons.restaurant),
-                        MissionItem(task: "Afternoon Refresh", subtitle: "Jam 15:00 sore", icon: Icons.wb_twilight),
-                        MissionItem(task: "Dinner Glass", subtitle: "Saat makan malam", icon: Icons.dinner_dining),
-                        MissionItem(task: "Night Cap", subtitle: "1 jam sebelum tidur", icon: Icons.nightlight_round),
+                        // MEMPERBAIKI ERROR CONSTRUCTOR: Tambahkan missionKey
+                        MissionItem(task: "Morning Glass", subtitle: "Bangun tidur (500ml)", icon: Icons.wb_sunny, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 0)),
+                        MissionItem(task: "After Coffee", subtitle: "Netralkan kafein", icon: Icons.coffee, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 1)),
+                        MissionItem(task: "Mid-Morning Sip", subtitle: "Jam 10:00 pagi", icon: Icons.watch_later, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 2)),
+                        MissionItem(task: "Lunch Companion", subtitle: "Sebelum makan siang", icon: Icons.restaurant, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 3)),
+                        MissionItem(task: "Afternoon Refresh", subtitle: "Jam 15:00 sore", icon: Icons.wb_twilight, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 4)),
+                        MissionItem(task: "Dinner Glass", subtitle: "Saat makan malam", icon: Icons.dinner_dining, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 5)),
+                        MissionItem(task: "Night Cap", subtitle: "1 jam sebelum tidur", icon: Icons.nightlight_round, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 6)),
                       ]
                   )))
               ),
 
-              // 3. ZEN MODE (Purple)
+// 3. ZEN MODE (Purple)
               _buildGoalCard(
                   title: "Zen Mindfulness",
                   subtitle: "Meditation & Gratitude",
@@ -484,18 +485,19 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Mindfulness", color: premiumPurple,
                       missions: [
-                        MissionItem(task: "5 Min Breathwork", subtitle: "Tarik napas, tahan, hembuskan", icon: Icons.air),
-                        MissionItem(task: "Gratitude Journal", subtitle: "Tulis 3 hal yang disyukuri", icon: Icons.book),
-                        MissionItem(task: "No Social Media", subtitle: "1 jam detoks digital", icon: Icons.phonelink_off),
-                        MissionItem(task: "Listen to Music", subtitle: "Lagu yang menenangkan", icon: Icons.music_note),
-                        MissionItem(task: "Look at the Sky", subtitle: "Istirahatkan mata sejenak", icon: Icons.cloud),
-                        MissionItem(task: "Positive Affirmation", subtitle: "Katakan 'Aku Hebat' di cermin", icon: Icons.sentiment_satisfied_alt),
-                        MissionItem(task: "Smile Therapy", subtitle: "Senyum selama 30 detik", icon: Icons.mood),
+                        // MEMPERBAIKI ERROR CONSTRUCTOR: Tambahkan missionKey
+                        MissionItem(task: "5 Min Breathwork", subtitle: "Tarik napas, tahan, hembuskan", icon: Icons.air, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 0)),
+                        MissionItem(task: "Gratitude Journal", subtitle: "Tulis 3 hal yang disyukuri", icon: Icons.book, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 1)),
+                        MissionItem(task: "No Social Media", subtitle: "1 jam detoks digital", icon: Icons.phonelink_off, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 2)),
+                        MissionItem(task: "Listen to Music", subtitle: "Lagu yang menenangkan", icon: Icons.music_note, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 3)),
+                        MissionItem(task: "Look at the Sky", subtitle: "Istirahatkan mata sejenak", icon: Icons.cloud, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 4)),
+                        MissionItem(task: "Positive Affirmation", subtitle: "Katakan 'Aku Hebat' di cermin", icon: Icons.sentiment_satisfied_alt, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 5)),
+                        MissionItem(task: "Smile Therapy", subtitle: "Senyum selama 30 detik", icon: Icons.mood, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 6)),
                       ]
                   )))
               ),
 
-              // 4. DEEP SLEEP (Indigo)
+// 4. DEEP SLEEP (Indigo)
               _buildGoalCard(
                   title: "Deep Sleep Ritual",
                   subtitle: "Quality Rest Preparation",
@@ -504,13 +506,14 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Sleep Hygiene", color: deepIndigo,
                       missions: [
-                        MissionItem(task: "Stop Kafein", subtitle: "Tidak ngopi setelah jam 2 siang", icon: Icons.no_drinks),
-                        MissionItem(task: "Warm Shower", subtitle: "Relaksasi otot tubuh", icon: Icons.shower),
-                        MissionItem(task: "Put Phone Away", subtitle: "1 jam sebelum tidur", icon: Icons.do_not_disturb_on),
-                        MissionItem(task: "Read a Physical Book", subtitle: "Hindari cahaya biru layar", icon: Icons.menu_book),
-                        MissionItem(task: "Room Temp 22°C", subtitle: "Suhu optimal untuk tidur", icon: Icons.thermostat),
-                        MissionItem(task: "Dim the Lights", subtitle: "Ciptakan suasana redup", icon: Icons.lightbulb_outline),
-                        MissionItem(task: "Pray / Meditate", subtitle: "Tenangkan pikiran", icon: Icons.spa),
+                        // MEMPERBAIKI ERROR CONSTRUCTOR: Tambahkan missionKey
+                        MissionItem(task: "Stop Kafein", subtitle: "Tidak ngopi setelah jam 2 siang", icon: Icons.no_drinks, missionKey: DatabaseHelper.instance.getMissionKey("Sleep Hygiene", 0)),
+                        MissionItem(task: "Warm Shower", subtitle: "Relaksasi otot tubuh", icon: Icons.shower, missionKey: DatabaseHelper.instance.getMissionKey("Sleep Hygiene", 1)),
+                        MissionItem(task: "Put Phone Away", subtitle: "1 jam sebelum tidur", icon: Icons.do_not_disturb_on, missionKey: DatabaseHelper.instance.getMissionKey("Sleep Hygiene", 2)),
+                        MissionItem(task: "Read a Physical Book", subtitle: "Hindari cahaya biru layar", icon: Icons.menu_book, missionKey: DatabaseHelper.instance.getMissionKey("Sleep Hygiene", 3)),
+                        MissionItem(task: "Room Temp 22°C", subtitle: "Suhu optimal untuk tidur", icon: Icons.thermostat, missionKey: DatabaseHelper.instance.getMissionKey("Sleep Hygiene", 4)),
+                        MissionItem(task: "Dim the Lights", subtitle: "Ciptakan suasana redup", icon: Icons.lightbulb_outline, missionKey: DatabaseHelper.instance.getMissionKey("Sleep Hygiene", 5)),
+                        MissionItem(task: "Pray / Meditate", subtitle: "Tenangkan pikiran", icon: Icons.spa, missionKey: DatabaseHelper.instance.getMissionKey("Sleep Hygiene", 6)),
                       ]
                   )))
               ),
@@ -878,24 +881,26 @@ class ArticleDetailPage extends StatelessWidget {
   }
 }
 
-// =========================================================
-// 4. MISSION LIST PAGE (DEPENDENCY FOR GOAL CARDS)
-// =========================================================
+
+// ... kode import dan definisi warna ...
+
 // =========================================================
 // 4. MISSION LIST PAGE (LUXURY LIST DESIGN)
 // =========================================================
 
-// Updated Model: Ditambahkan 'subtitle' dan 'icon'
 class MissionItem {
+// ... (Model tetap sama)
   String task;
   String subtitle;
   IconData icon;
   bool isCompleted;
+  String missionKey;
 
   MissionItem({
     required this.task,
     required this.subtitle,
     required this.icon,
+    required this.missionKey,
     this.isCompleted = false
   });
 }
@@ -919,10 +924,92 @@ class _MissionListPageState extends State<MissionListPage> {
     return total == 0 ? 0 : completed / total;
   }
 
+  // <--- BARU: VARIABEL UNTUK MELACAK STATUS SELESAI HARI INI --->
+  // Digunakan agar notifikasi hanya muncul sekali per hari.
+  bool _isGoalCompletedToday = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMissionStatuses();
+  }
+
+  // Fungsi untuk menampilkan SnackBar notifikasi
+  void _showCompletionNotification() {
+    // Pastikan semua misi memang sudah selesai
+    if (progress == 1.0 && !_isGoalCompletedToday) {
+      _isGoalCompletedToday = true; // Set status agar tidak muncul lagi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.emoji_events, color: Colors.white),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  // Menggunakan judul Goal yang spesifik
+                  "Selamat! Kamu sudah menyelesaikan ${widget.title}!",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: widget.color, // Warna SnackBar sesuai tema Goal
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(10),
+        ),
+      );
+    }
+  }
+
+  // --- LOGIKA LOADING DARI DATABASE ---
+  Future<void> _loadMissionStatuses() async {
+    final statuses = await DatabaseHelper.instance.getTodayMissionStatuses();
+
+    // Iterasi melalui misi lokal dan sinkronisasi dengan status database
+    for (var mission in widget.missions) {
+      if (statuses.containsKey(mission.missionKey)) {
+        // Jika status ditemukan, update isCompleted
+        mission.isCompleted = statuses[mission.missionKey]!;
+      }
+    }
+    // Perbarui UI setelah sinkronisasi
+    if (mounted) {
+      setState(() {
+        // Cek status saat loading: Jika 100%, set flag _isGoalCompletedToday
+        if (progress == 1.0) {
+          _isGoalCompletedToday = true;
+        }
+      });
+    }
+  }
+
+  // --- LOGIKA TOGGLE & SAVE KE DATABASE (MODIFIKASI) ---
+  void _toggleMission(MissionItem item) async {
+    // 1. Update UI secara instan
+    setState(() {
+      item.isCompleted = !item.isCompleted;
+    });
+
+    // 2. Simpan status ke Database
+    await DatabaseHelper.instance.updateMissionStatus(
+        item.missionKey,
+        item.isCompleted
+    );
+
+    // 3. <--- BARU: Cek dan Tampilkan Notifikasi setelah perubahan --->
+    if (item.isCompleted) { // Notifikasi hanya saat centang (Selesai)
+      _showCompletionNotification();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ... (Kode build tetap sama, tidak perlu diubah) ...
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Background sedikit abu-abu sangat muda
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(widget.title, style: const TextStyle(color: darkNavy, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
@@ -992,14 +1079,11 @@ class _MissionListPageState extends State<MissionListPage> {
 
   // Widget List Item yang Mewah
   Widget _buildMissionTile(MissionItem item) {
+    // ... (Kode _buildMissionTile tetap sama) ...
     bool isDone = item.isCompleted;
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          item.isCompleted = !item.isCompleted;
-        });
-      },
+      onTap: () => _toggleMission(item),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
