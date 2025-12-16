@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import Shared Preferences (as reference, though using DB helper)
+// import 'package:shared_preferences/shared_preferences.dart'; // Tetap sebagai referensi
 import '../../database_helper.dart';
 import '../../widgets/logo_widget.dart';
 import '../home_page.dart';
@@ -31,10 +31,15 @@ class _LoginPageState extends State<LoginPage> {
   void _loadSavedSession() async {
     final session = await DatabaseHelper.instance.getSession();
     if (session != null) {
+      // Pastikan DatabaseHelper mengetahui ID pengguna aktif dari sesi
+      if (session.containsKey('user_id')) {
+        DatabaseHelper.instance.setActiveUserId(session['user_id'] as int);
+      }
+
       setState(() {
         // Mengisi TextFields dengan data sesi yang tersimpan
-        emailCtrl.text = session['email'];
-        passCtrl.text = session['password'];
+        emailCtrl.text = session['email'] ?? '';
+        passCtrl.text = session['password'] ?? '';
         _rememberMe = true;
       });
     }
@@ -50,18 +55,28 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    // Tambahkan validasi format email dasar
+    if (!email.contains('@') || !email.contains('.')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a valid email address')));
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
       await Future.delayed(const Duration(milliseconds: 500));
-      bool isAuthenticated = await DatabaseHelper.instance.loginUser(email, pass);
 
-      if (isAuthenticated) {
+      // PERUBAHAN KRITIS: loginUser sekarang mengembalikan Map<String, dynamic>?
+      final userData = await DatabaseHelper.instance.loginUser(email, pass);
+
+      if (userData != null) {
+        final userId = userData['id'] as int;
 
         // --- PROSES SIMPAN DATA ---
         if (_rememberMe) {
-          // Menyimpan kredensial ke DB Helper
-          await DatabaseHelper.instance.saveSession(email, pass);
+          // PERUBAHAN KRITIS: saveSession sekarang menerima userId
+          await DatabaseHelper.instance.saveSession(userId, email, pass);
         } else {
           // Menghapus sesi jika 'Remember Me' tidak dicentang
           await DatabaseHelper.instance.clearSession();
@@ -116,9 +131,9 @@ class _LoginPageState extends State<LoginPage> {
                 // Header (Tombol Back)
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 6, bottom: 10),
-                    child: Row(children: const [
+                  child: const Padding( // Menggunakan const
+                    padding: EdgeInsets.only(top: 6, bottom: 10),
+                    child: Row(children: [ // Menggunakan const
                       Icon(Icons.arrow_back_ios, size: 18, color: Color(0xFF333333)),
                       SizedBox(width: 6),
                       Text('Log In', style: TextStyle(fontSize: 16)),
@@ -141,6 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Form Input Email
                 TextField(
                     controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress, // Tambahan: Keyboard Email
                     decoration: inputDecoration.copyWith(hintText: 'Email')
                 ),
                 const SizedBox(height: 12),
