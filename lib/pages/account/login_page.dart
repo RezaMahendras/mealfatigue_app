@@ -1,100 +1,76 @@
 import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart'; // Tetap sebagai referensi
-import '../../database_helper.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/logo_widget.dart';
-import '../home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Warna utama yang sama dengan Signup Page
-  static const primaryOrange = Color(0xFFFF6B4A);
-
-  bool obscure = true;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _rememberMe = false; // Checkbox state
-
-  final emailCtrl = TextEditingController();
-  final passCtrl = TextEditingController();
+  bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   @override
   void initState() {
     super.initState();
-    _loadSavedSession();
+    _loadSavedCredentials();
   }
 
-  // Load data jika ada
-  void _loadSavedSession() async {
-    final session = await DatabaseHelper.instance.getSession();
-    if (session != null) {
-      // Pastikan DatabaseHelper mengetahui ID pengguna aktif dari sesi
-      if (session.containsKey('user_id')) {
-        DatabaseHelper.instance.setActiveUserId(session['user_id'] as int);
-      }
-
-      setState(() {
-        // Mengisi TextFields dengan data sesi yang tersimpan
-        emailCtrl.text = session['email'] ?? '';
-        passCtrl.text = session['password'] ?? '';
-        _rememberMe = true;
-      });
-    }
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _emailController.text = prefs.getString('remembered_email') ?? '';
+      _rememberMe = prefs.getBool('remember_me') ?? false;
+    });
   }
 
-  void _handleLogin() async {
-    String email = emailCtrl.text.trim();
-    String pass = passCtrl.text.trim();
-
-    if (email.isEmpty || pass.isEmpty) {
+  Future<void> _handleLogin() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill all fields')));
-      return;
-    }
-
-    // Tambahkan validasi format email dasar
-    if (!email.contains('@') || !email.contains('.')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid email address')));
+        const SnackBar(content: Text('Email dan password tidak boleh kosong')),
+      );
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-      // PERUBAHAN KRITIS: loginUser sekarang mengembalikan Map<String, dynamic>?
-      final userData = await DatabaseHelper.instance.loginUser(email, pass);
-
-      if (userData != null) {
-        final userId = userData['id'] as int;
-
-        // --- PROSES SIMPAN DATA ---
-        if (_rememberMe) {
-          // PERUBAHAN KRITIS: saveSession sekarang menerima userId
-          await DatabaseHelper.instance.saveSession(userId, email, pass);
-        } else {
-          // Menghapus sesi jika 'Remember Me' tidak dicentang
-          await DatabaseHelper.instance.clearSession();
-        }
-        // --------------------------
-
-        if (!mounted) return;
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const HomePage()));
+      final prefs = await SharedPreferences.getInstance();
+      if (_rememberMe) {
+        await prefs.setString('remembered_email', _emailController.text.trim());
+        await prefs.setBool('remember_me', true);
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Colors.red,
-            content: Text('Invalid Email or Password')));
+        await prefs.remove('remembered_email');
+        await prefs.setBool('remember_me', false);
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      }
+    } on AuthException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Terjadi kesalahan yang tidak diketahui'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -102,149 +78,139 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    emailCtrl.dispose();
-    passCtrl.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Definisi dekorasi input agar sama dengan Signup Page
+    const Color primaryOrange = Color(0xFFFF6B4A);
+
     final inputDecoration = InputDecoration(
       filled: true,
-      fillColor: Colors.grey[100],
+      fillColor: const Color(0xFFF5F5F5),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      hintStyle: const TextStyle(color: Colors.grey, fontSize: 15),
     );
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header (Tombol Back)
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Padding( // Menggunakan const
-                    padding: EdgeInsets.only(top: 6, bottom: 10),
-                    child: Row(children: [ // Menggunakan const
-                      Icon(Icons.arrow_back_ios, size: 18, color: Color(0xFF333333)),
-                      SizedBox(width: 6),
-                      Text('Log In', style: TextStyle(fontSize: 16)),
-                    ]),
-                  ),
-                ),
-
-                const SizedBox(height: 70),
-
-                // Logo Diperbesar
-                Center(
-                  child: Transform.scale(
-                    scale: 2.5,
-                    child: const LogoWidget(big: false),
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                // Form Input Email
-                TextField(
-                    controller: emailCtrl,
-                    keyboardType: TextInputType.emailAddress, // Tambahan: Keyboard Email
-                    decoration: inputDecoration.copyWith(hintText: 'Email')
-                ),
-                const SizedBox(height: 12),
-
-                // Form Input Password
-                TextField(
-                  controller: passCtrl,
-                  obscureText: obscure,
-                  decoration: inputDecoration.copyWith(
-                    hintText: 'Password',
-                    suffixIcon: IconButton(
-                      // Menggunakan warna abu-abu yang sama dengan Signup Page
-                        icon: Icon(obscure ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
-                        onPressed: () => setState(() => obscure = !obscure)
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // CHECKBOX REMEMBER ME
-                Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Row(
                   children: [
-                    SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: Checkbox(
-                        value: _rememberMe,
-                        // Menggunakan primaryOrange
-                        activeColor: primaryOrange,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        onChanged: (val) {
-                          setState(() {
-                            _rememberMe = val ?? false;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Menggunakan TextStyle yang lebih jelas (seperti di versi awal)
-                    Text(
-                      "Remember Me / Simpan Login",
-                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                    ),
+                    Icon(Icons.arrow_back_ios, size: 18, color: Color(0xFF333333)),
+                    SizedBox(width: 8),
+                    Text('Log In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                   ],
                 ),
-
-                const SizedBox(height: 24),
-
-                // Tombol Login
-                SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          // Menggunakan primaryOrange
-                            backgroundColor: primaryOrange,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            elevation: 0 // Menghilangkan bayangan
-                        ),
-                        onPressed: _isLoading ? null : _handleLogin,
-                        child: _isLoading
-                            ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                        )
-                            : const Text('Log In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
-                    )
+              ),
+              const SizedBox(height: 60),
+              Center(
+                child: Transform.scale(
+                  scale: 2.5,
+                  child: const LogoWidget(big: false),
                 ),
-
-                const SizedBox(height: 24),
-
-                // Link Sign Up
-                Center(
-                    child: TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/signup'),
-                        child: Text(
-                            'Don\'t have an account? Sign up',
-                            // Menggunakan warna dan fontWeight yang sama dengan Signup Page
-                            style: TextStyle(
-                                color: primaryOrange.withOpacity(0.8),
-                                fontWeight: FontWeight.w600
-                            )
-                        )
-                    )
-                )
-              ]
+              ),
+              const SizedBox(height: 60),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: inputDecoration.copyWith(hintText: 'Email'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                decoration: inputDecoration.copyWith(
+                  hintText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 24,
+                    height: 40,
+                    child: Checkbox(
+                      value: _rememberMe,
+                      activeColor: primaryOrange,
+                      onChanged: (value) {
+                        setState(() => _rememberMe = value ?? false);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Remember Me",
+                    style: TextStyle(color: Colors.black54, fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryOrange,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                      : const Text(
+                    "Log In",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/signup'),
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 14, color: Colors.black54),
+                      children: [
+                        const TextSpan(text: "Don't have an account? "),
+                        TextSpan(
+                          text: 'Sign up',
+                          style: TextStyle(
+                            color: primaryOrange.withOpacity(0.8),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
