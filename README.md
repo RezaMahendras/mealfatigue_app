@@ -1,5 +1,7 @@
 # Meal Fatigue App
 
+[![Downloads](https://img.shields.io/github/downloads/RezaMahendras/mealfatigue_app/total?style=for-the-badge&color=green)](https://github.com/RezaMahendras/mealfatigue_app/releases)
+
 ### Deskripsi
 Sering merasa lelah memikirkan menu makanan setiap hari? Atau bingung mengatur uang belanja saat tanggal tua? Meal Fatigue adalah solusi all-in-one untuk mahasiswa dan siapa saja yang ingin hidup lebih sehat, hemat, dan praktis.
 
@@ -7,9 +9,9 @@ Aplikasi ini tidak hanya memberikan resep, tetapi membantu Anda mengelola gaya h
 
 Fitur Unggulan:
 
-- 🛒KosLife (Smart Budgeting): Kelola keuangan makan Anda tanpa pusing. Cukup masukkan budget bulanan, jumlah orang, dan kondisi dompet Anda (misal: "Akhir Bulan"). AI kami akan menyusun daftar belanja cerdas dengan kategori Wajib Beli, Boleh Beli, dan Jangan Beli Dulu. Hemat uang tanpa takut kelaparan!
+- 🛒KosLife (Smart Budgeting): Kelola keuangan makan Anda tanpa pusing. Cukup masukkan budget bulanan, jumlah orang, dan kondisi dompet Anda (misal: "Akhir Bulan"). sistem kami akan menyusun daftar belanja cerdas dengan kategori Wajib Beli, Boleh Beli, dan Jangan Beli Dulu. Hemat uang tanpa takut kelaparan!
 
-- 👩‍🍳FridgeChef (Scan & Cook): Punya bahan sisa di kulkas tapi bingung mau masak apa? Cukup foto/scan isi kulkas Anda. Teknologi AI kami akan mendeteksi bahan yang tersedia dan meracikkan resep lezat khusus untuk Anda. Tidak ada lagi makanan yang terbuang.
+- 👩‍🍳FridgeChef (Scan & Cook): Punya bahan sisa di kulkas tapi bingung mau masak apa? Cukup tulis isi kulkas Anda. sistem kami akan mendeteksi bahan yang tersedia dan meracikkan resep lezat khusus untuk Anda. Tidak ada lagi makanan yang terbuang.
 
 - 💖DHarmony (Couple Dining): Hilangkan debat "terserah mau makan apa" dengan pasangan. Fitur ini mencocokkan preferensi Anda dan pasangan (alergi, level pedas, makanan favorit). Sistem akan merekomendasikan menu "tengah" yang pasti disukai oleh kedua belah pihak.
 
@@ -76,3 +78,6 @@ https://www.figma.com/design/GcLaYqswrPEkOACGRwNUzP/Untitled?node-id=0-1&t=Z23PH
 | **Integrasi Database Fitur "DHarmony couple profie"** | Rafsyanjani Hidayat | High | Selesai | ✔ |
 | **Halaman Fitur "DHarmony weekend menu"** | Rafsyanjani Hidayat | Medium | Selesai | ✔ |
 | **Upload Assets"** | Synthia Indira Prastica | Medium | Selesai | ✔ |
+| **release aplikasi"** | Reza Mahendra Saputra | hard | Selesai | ✔ |
+| **implementasi statistik Firebase"** | Rafsyanjani Hidayat | hard | Selesai | ✔ |
+| **implementasi statistik Netlify"** | Synthia Indira Prastica | hard | Selesai | ✔ |
