@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
-// --- SESUAIKAN IMPORT INI DENGAN STRUKTUR FOLDER ANDA ---
 import 'profile/profile_page.dart';
 import 'koslife/kos_life.dart';
 import 'fridge/fridge_chef.dart';
 import 'dharmony/dharmony.dart';
-import 'dart:io'; // Untuk File
+import 'dart:io';
 import '../../database_helper.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-// --- DEFINISI WARNA TEMA ---
 const Color darkNavy = Color(0xFF1E293B);
 const Color primaryOrange = Color(0xFFFF6B4A);
 const Color premiumPurple = Color(0xFF8B5CF6);
 const Color deepIndigo = Color(0xFF4338CA);
 
-// =========================================================
-// 1. HOME PAGE (PARENT NAVIGATION)
-// =========================================================
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -38,6 +34,8 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedIndex = index;
     });
+    if (index == 0) {
+    }
   }
 
   @override
@@ -70,7 +68,7 @@ class _HomePageState extends State<HomePage> {
           items: const [
             BottomNavigationBarItem(
                 icon: Icon(Icons.home_filled),
-                label: 'Home' // Label wajib ada, tidak boleh null
+                label: 'Home'
             ),
             BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'KosLife'),
             BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Chef'),
@@ -83,9 +81,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// =========================================================
-// 2. DASHBOARD TAB (UPDATED: SINKRONISASI FOTO PROFIL)
-// =========================================================
 class DashboardTab extends StatefulWidget {
   const DashboardTab({Key? key}) : super(key: key);
 
@@ -94,21 +89,34 @@ class DashboardTab extends StatefulWidget {
 }
 
 class _DashboardTabState extends State<DashboardTab> {
-  String? profilePicPath; // Variabel untuk menyimpan path foto
+  String? avatarUrl;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadProfileData(); // Load data saat halaman dibuat
+    _loadProfileData();
   }
 
-  // Fungsi ambil data dari Database
   Future<void> _loadProfileData() async {
-    final data = await DatabaseHelper.instance.getUserProfile();
-    if (data != null && mounted) {
-      setState(() {
-        profilePicPath = data['profilePicturePath'];
-      });
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final data = await Supabase.instance.client
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (data != null && mounted) {
+          setState(() {
+            avatarUrl = data['avatar_url'];
+            isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading dashboard profile: $e");
     }
   }
 
@@ -121,11 +129,6 @@ class _DashboardTabState extends State<DashboardTab> {
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
     DateTime startOfWeek = now.subtract(Duration(days: now.weekday % 7));
-
-    // Cek apakah ada file gambar yang valid
-    bool hasImage = profilePicPath != null &&
-        profilePicPath!.isNotEmpty &&
-        File(profilePicPath!).existsSync();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -154,31 +157,28 @@ class _DashboardTabState extends State<DashboardTab> {
                     ],
                   ),
 
-                  // --- TOMBOL PROFIL DENGAN FOTO ---
                   GestureDetector(
                     onTap: () {
                       final homeState = context.findAncestorStateOfType<_HomePageState>();
-                      homeState?._onItemTapped(4); // Navigasi ke Tab Profile
+                      homeState?._onItemTapped(4);
                     },
                     child: Container(
                       width: 45, height: 45,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        shape: BoxShape.circle, // Pastikan bulat sempurna
+                        shape: BoxShape.circle,
                         border: Border.all(color: Colors.grey.shade300),
                         boxShadow: [
                           BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6, offset: const Offset(0, 2))
                         ],
-                        // Tampilkan gambar jika ada
-                        image: hasImage
+                        image: (avatarUrl != null && avatarUrl!.isNotEmpty)
                             ? DecorationImage(
-                          image: FileImage(File(profilePicPath!)),
+                          image: NetworkImage(avatarUrl!),
                           fit: BoxFit.cover,
                         )
                             : null,
                       ),
-                      // Jika tidak ada gambar, tampilkan Icon default
-                      child: !hasImage
+                      child: (avatarUrl == null || avatarUrl!.isEmpty)
                           ? const Icon(Icons.person, color: Color(0xFF2D2D2D))
                           : null,
                     ),
@@ -187,7 +187,6 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
               const SizedBox(height: 24),
 
-              // --- CALENDAR STRIP ---
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -200,12 +199,10 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
               const SizedBox(height: 30),
 
-              // --- INFO CARDS (ARTIKEL PREMIUM) ---
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    // KARTU 1: SALAD SAYUR (HIJAU)
                     _buildInfoCard(
                         title: "Salad Sayur Sehat",
                         subtitle: "Resep segar & manfaat diet...",
@@ -246,7 +243,6 @@ class _DashboardTabState extends State<DashboardTab> {
                             ),
                             const SizedBox(height: 32),
 
-                            // Kotak Tips
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -271,7 +267,6 @@ class _DashboardTabState extends State<DashboardTab> {
                     ),
                     const SizedBox(width: 16),
 
-                    // KARTU 2: JUS DETOX (ORANGE)
                     _buildInfoCard(
                         title: "Jus Detox Alami",
                         subtitle: "Resep booster imun & energi...",
@@ -311,7 +306,6 @@ class _DashboardTabState extends State<DashboardTab> {
                             _buildBulletPoint("Mata Sehat", "Kandungan beta-carotene tinggi."),
                             const SizedBox(height: 32),
 
-                            // Kotak Tips
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -336,7 +330,6 @@ class _DashboardTabState extends State<DashboardTab> {
                     ),
                     const SizedBox(width: 16),
 
-                    // KARTU 3: SUPER FRUITS (MERAH/PINK) - [BARU DITAMBAHKAN]
                     _buildInfoCard(
                         title: "Super Fruits Guide",
                         subtitle: "Pilihan buah rendah gula & serat...",
@@ -371,7 +364,6 @@ class _DashboardTabState extends State<DashboardTab> {
                             _buildBulletPoint("Mix & Match", "Campur dengan yogurt plain untuk protein."),
                             const SizedBox(height: 32),
 
-                            // Kotak Tips
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -399,11 +391,6 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
               const SizedBox(height: 30),
 
-              // --- DAILY GOALS ---
-// --- DAILY GOALS (4 KATEGORI LENGKAP) ---
-              // ==============================================================
-              // BAGIAN DAILY GOALS (SIMPLE & ELEGAN)
-              // ==============================================================
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -412,12 +399,12 @@ class _DashboardTabState extends State<DashboardTab> {
                     const Text(
                       'Daily Goals',
                       style: TextStyle(
-                        fontSize: 20, // Ukuran font sedikit dikecilkan agar lebih elegan
+                        fontSize: 20, 
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B), // Dark Navy
+                        color: Color(0xFF1E293B), 
                       ),
                     ),
-                    // Indikator simpel
+
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
@@ -432,9 +419,6 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
               const SizedBox(height: 16),
 
-              // Di dalam _DashboardTabState.build()...
-
-// 1. FISIK (Orange)
               _buildGoalCard(
                   title: "Physical Activity",
                   subtitle: "Cardio, Strength, & Stretch",
@@ -443,7 +427,6 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Physical Mission", color: primaryOrange,
                       missions: [
-                        // MEMPERBAIKI ERROR CONSTRUCTOR: Tambahkan missionKey
                         MissionItem(task: "Peregangan Pagi", subtitle: "5 menit peregangan otot", icon: Icons.accessibility_new, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 0)),
                         MissionItem(task: "Jalan Kaki Ringan", subtitle: "Minimal 3000 langkah", icon: Icons.directions_walk, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 1)),
                         MissionItem(task: "Push Up 10x", subtitle: "Kuatkan otot lengan & dada", icon: Icons.fitness_center, missionKey: DatabaseHelper.instance.getMissionKey("Physical Mission", 2)),
@@ -455,7 +438,6 @@ class _DashboardTabState extends State<DashboardTab> {
                   )))
               ),
 
-// 2. AIR (Blue)
               _buildGoalCard(
                   title: "Hydration Master",
                   subtitle: "Target: 2000ml Water Intake",
@@ -464,7 +446,6 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Hydration Mission", color: Colors.blue,
                       missions: [
-                        // MEMPERBAIKI ERROR CONSTRUCTOR: Tambahkan missionKey
                         MissionItem(task: "Morning Glass", subtitle: "Bangun tidur (500ml)", icon: Icons.wb_sunny, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 0)),
                         MissionItem(task: "After Coffee", subtitle: "Netralkan kafein", icon: Icons.coffee, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 1)),
                         MissionItem(task: "Mid-Morning Sip", subtitle: "Jam 10:00 pagi", icon: Icons.watch_later, missionKey: DatabaseHelper.instance.getMissionKey("Hydration Mission", 2)),
@@ -476,7 +457,6 @@ class _DashboardTabState extends State<DashboardTab> {
                   )))
               ),
 
-// 3. ZEN MODE (Purple)
               _buildGoalCard(
                   title: "Zen Mindfulness",
                   subtitle: "Meditation & Gratitude",
@@ -485,7 +465,6 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MissionListPage(
                       title: "Mindfulness", color: premiumPurple,
                       missions: [
-                        // MEMPERBAIKI ERROR CONSTRUCTOR: Tambahkan missionKey
                         MissionItem(task: "5 Min Breathwork", subtitle: "Tarik napas, tahan, hembuskan", icon: Icons.air, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 0)),
                         MissionItem(task: "Gratitude Journal", subtitle: "Tulis 3 hal yang disyukuri", icon: Icons.book, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 1)),
                         MissionItem(task: "No Social Media", subtitle: "1 jam detoks digital", icon: Icons.phonelink_off, missionKey: DatabaseHelper.instance.getMissionKey("Mindfulness", 2)),
