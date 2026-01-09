@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-// --- Definisi Warna Tema ---
 const Color primaryOrange = Color(0xFFFF6B4A);
 const Color darkNavy = Color(0xFF1E293B);
 const Color cardSurface = Color(0xFFF6F8FA);
@@ -18,35 +18,46 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
+  final _supabase = Supabase.instance.client;
 
   late TextEditingController nameCtrl;
   late TextEditingController nicknameCtrl;
   late TextEditingController ageCtrl;
   late TextEditingController heightCtrl;
   late TextEditingController weightCtrl;
-  late TextEditingController emailCtrl;
   late TextEditingController phoneCtrl;
 
   String? selectedStatus;
   final List<String> statusOptions = ['Mahasiswa', 'Pekerja', 'Lainnya'];
 
   File? _imageFile;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    nameCtrl = TextEditingController(text: widget.currentData['fullName']?.toString() ?? '');
-    nicknameCtrl = TextEditingController(text: widget.currentData['nickName']?.toString() ?? '');
+    nameCtrl = TextEditingController(text: widget.currentData['full_name']?.toString() ?? '');
+    nicknameCtrl = TextEditingController(text: widget.currentData['nickname']?.toString() ?? '');
     ageCtrl = TextEditingController(text: widget.currentData['age']?.toString() ?? '');
     heightCtrl = TextEditingController(text: widget.currentData['height']?.toString() ?? '');
     weightCtrl = TextEditingController(text: widget.currentData['weight']?.toString() ?? '');
-    emailCtrl = TextEditingController(text: widget.currentData['email']?.toString() ?? '');
     phoneCtrl = TextEditingController(text: widget.currentData['phone']?.toString() ?? '');
 
     String? statusAwal = widget.currentData['status']?.toString();
     if (statusAwal != null && statusOptions.contains(statusAwal)) {
       selectedStatus = statusAwal;
     }
+  }
+
+  @override
+  void dispose() {
+    nameCtrl.dispose();
+    nicknameCtrl.dispose();
+    ageCtrl.dispose();
+    heightCtrl.dispose();
+    weightCtrl.dispose();
+    phoneCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _getFromGallery() async {
@@ -63,144 +74,145 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  // --- 1. LOGIKA TOMBOL DONE (Updated) ---
   void _handleDoneButton() {
-    // Validasi form dulu, kalau aman baru munculin dialog
     if (_formKey.currentState!.validate()) {
       _showSaveConfirmation(context);
     }
   }
 
-  // --- 2. TAMPILAN DIALOG KONFIRMASI ---
   void _showSaveConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 10)),
-              ],
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            const Icon(Icons.cloud_upload_outlined, size: 50, color: primaryOrange),
+            const SizedBox(height: 16),
+            const Text(
+              "Simpan Perubahan?",
+              style: TextStyle(color: darkNavy, fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon Header (Orange)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: primaryOrange.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.save_as_rounded, size: 32, color: primaryOrange),
-                ),
-                const SizedBox(height: 20),
-
-                // Title
-                const Text(
-                  "Save Changes?",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: darkNavy),
-                ),
-                const SizedBox(height: 8),
-
-                // Subtitle
-                Text(
-                  "Are you sure you want to update your profile information?",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
-                ),
-                const SizedBox(height: 24),
-
-                // Buttons
-                Row(
-                  children: [
-                    // Tombol Cancel
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text(
-                            "Cancel",
-                            style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600)
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Tombol Yes, Save
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // 1. Tutup Dialog
-                          Navigator.pop(context);
-
-                          // 2. Proses Simpan Data
-                          _performSave();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryOrange,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text("Save Changes", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                      ),
-                    ),
-                  ],
-                )
-              ],
+            const SizedBox(height: 8),
+            Text(
+              "Apakah Anda yakin ingin memperbarui data profil Anda?",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
+            const SizedBox(height: 20),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
           ),
-        );
-      },
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _performSave();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryOrange,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("Ya, Simpan", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 
-  // --- 3. PROSES SIMPAN DATA (Dipindah ke sini) ---
-  void _performSave() {
-    String finalImagePath = _imageFile?.path ?? widget.currentData['profilePicturePath']?.toString() ?? '';
+  Future<void> _performSave() async {
+    setState(() => _isSaving = true);
 
-    Map<String, dynamic> newData = {
-      'fullName': nameCtrl.text,
-      'nickName': nicknameCtrl.text,
-      'age': ageCtrl.text,
-      'height': heightCtrl.text,
-      'weight': weightCtrl.text,
-      'email': emailCtrl.text,
-      'phone': phoneCtrl.text,
-      'status': selectedStatus ?? 'Mahasiswa',
-      'profilePicturePath': finalImagePath,
-    };
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
 
-    // Kembali ke halaman Profile dengan membawa data baru
-    Navigator.pop(context, newData);
+      String? avatarUrl = widget.currentData['avatar_url'];
 
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(backgroundColor: Colors.green, content: Text('Changes saved successfully'))
-    );
+      if (_imageFile != null) {
+        final fileExtension = _imageFile!.path.split('.').last;
+        final fileName = '$userId-${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+
+        await _supabase.storage.from('avatars').upload(
+          fileName,
+          _imageFile!,
+          fileOptions: const FileOptions(upsert: true),
+        );
+        avatarUrl = _supabase.storage.from('avatars').getPublicUrl(fileName);
+      }
+
+      await _supabase.from('profiles').upsert({
+        'id': userId,
+        'full_name': nameCtrl.text,
+        'nickname': nicknameCtrl.text,
+        'age': int.tryParse(ageCtrl.text) ?? 0,
+        'height': int.tryParse(heightCtrl.text) ?? 0,
+        'weight': int.tryParse(weightCtrl.text) ?? 0,
+        'status': selectedStatus ?? 'Lainnya',
+        'phone': phoneCtrl.text,
+        'avatar_url': avatarUrl,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: darkNavy,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: primaryOrange, size: 24),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Profil Berhasil Disimpan!',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(backgroundColor: Colors.red, content: Text('Error: $e'))
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    String? oldPath = widget.currentData['profilePicturePath']?.toString();
-    bool hasOldImage = oldPath != null && oldPath.isNotEmpty && File(oldPath).existsSync();
-
-    ImageProvider? displayImage;
+    ImageProvider? imageProvider;
     if (_imageFile != null) {
-      displayImage = FileImage(_imageFile!);
-    } else if (hasOldImage) {
-      displayImage = FileImage(File(oldPath));
+      imageProvider = FileImage(_imageFile!);
+    } else if (widget.currentData['avatar_url'] != null && widget.currentData['avatar_url'].toString().isNotEmpty) {
+      imageProvider = NetworkImage(widget.currentData['avatar_url']);
     }
 
     return Scaffold(
@@ -209,19 +221,39 @@ class _EditProfilePageState extends State<EditProfilePage> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text("Edit Profile", style: TextStyle(color: darkNavy, fontWeight: FontWeight.bold, fontSize: 16)),
+        title: const Text(
+          "Edit Profile",
+          style: TextStyle(color: darkNavy, fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         leadingWidth: 80,
-        leading: TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel", style: TextStyle(color: Colors.grey, fontSize: 14)),
+        leading: Center(
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Text(
+              "Batal",
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
         ),
         actions: [
-          Padding(
+          _isSaving
+              ? const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: primaryOrange),
+              ),
+            ),
+          )
+              : Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: TextButton(
-              // Panggil fungsi handleDoneButton (yang memunculkan dialog)
               onPressed: _handleDoneButton,
-              child: const Text("Done", style: TextStyle(color: primaryOrange, fontWeight: FontWeight.bold, fontSize: 14)),
+              child: const Text(
+                "Selesai",
+                style: TextStyle(color: primaryOrange, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
             ),
           )
         ],
@@ -231,64 +263,48 @@ class _EditProfilePageState extends State<EditProfilePage> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // --- FOTO PROFIL ---
               GestureDetector(
                 onTap: _getFromGallery,
                 child: Stack(
                   children: [
-                    Container(
-                      width: 80, height: 80,
-                      decoration: BoxDecoration(
-                        color: cardSurface,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.shade200),
-                        image: displayImage != null
-                            ? DecorationImage(image: displayImage, fit: BoxFit.cover)
-                            : null,
-                      ),
-                      child: displayImage == null
-                          ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: cardSurface,
+                      backgroundImage: imageProvider,
+                      child: imageProvider == null
+                          ? const Icon(Icons.person, size: 50, color: Colors.grey)
                           : null,
                     ),
                     Positioned(
                       bottom: 0, right: 0,
                       child: Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(color: primaryOrange, shape: BoxShape.circle),
-                        child: const Icon(Icons.camera_alt, size: 12, color: Colors.white),
+                        child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
                       ),
                     )
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // --- FORM FIELDS ---
-              _buildCompactField("Full Name", nameCtrl),
-              const SizedBox(height: 12),
-              _buildCompactField("Nickname", nicknameCtrl),
-              const SizedBox(height: 12),
-
+              const SizedBox(height: 30),
+              _buildField("Nama Lengkap", nameCtrl),
+              const SizedBox(height: 15),
+              _buildField("Nama Panggilan", nicknameCtrl),
+              const SizedBox(height: 15),
               Row(
                 children: [
-                  Expanded(child: _buildCompactField("Age", ageCtrl, isNumber: true, suffix: "yo")),
+                  Expanded(child: _buildField("Umur", ageCtrl, isNumber: true)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildCompactField("Height", heightCtrl, isNumber: true, suffix: "cm")),
+                  Expanded(child: _buildField("Tinggi (cm)", heightCtrl, isNumber: true)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildCompactField("Weight", weightCtrl, isNumber: true, suffix: "kg")),
+                  Expanded(child: _buildField("Berat (kg)", weightCtrl, isNumber: true)),
                 ],
               ),
-              const SizedBox(height: 12),
-
-              _buildDropdownField(),
-              const SizedBox(height: 12),
-
-              _buildCompactField("Email", emailCtrl, isEmail: true),
-              const SizedBox(height: 12),
-              _buildCompactField("Phone", phoneCtrl, isNumber: true),
-
+              const SizedBox(height: 15),
+              _buildDropdown(),
+              const SizedBox(height: 15),
+              _buildField("Nomor Telepon", phoneCtrl, isNumber: true),
               const SizedBox(height: 30),
             ],
           ),
@@ -297,57 +313,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildCompactField(String label, TextEditingController ctrl, {bool isNumber = false, bool isEmail = false, String? suffix}) {
+  Widget _buildField(String label, TextEditingController ctrl, {bool isNumber = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
         const SizedBox(height: 6),
-        SizedBox(
-          height: 48,
-          child: TextFormField(
-            controller: ctrl,
-            keyboardType: isNumber ? TextInputType.number : (isEmail ? TextInputType.emailAddress : TextInputType.text),
-            style: const TextStyle(fontSize: 14, color: darkNavy, fontWeight: FontWeight.w600),
-            cursorColor: primaryOrange,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: cardSurface,
-              suffixText: suffix,
-              suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: primaryOrange, width: 1)),
-            ),
-            validator: (v) => v!.isEmpty ? '' : null,
+        TextFormField(
+          controller: ctrl,
+          keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+          style: const TextStyle(fontSize: 14, color: darkNavy, fontWeight: FontWeight.w600),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: cardSurface,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
           ),
+          validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
         ),
       ],
     );
   }
 
-  Widget _buildDropdownField() {
+  Widget _buildDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Status", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
         const SizedBox(height: 6),
         Container(
-          height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: cardSurface,
-            borderRadius: BorderRadius.circular(8),
-          ),
+          decoration: BoxDecoration(color: cardSurface, borderRadius: BorderRadius.circular(10)),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: selectedStatus,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.grey),
-              style: const TextStyle(fontSize: 14, color: darkNavy, fontWeight: FontWeight.w600),
-              items: statusOptions.map((String value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
-              onChanged: (newValue) => setState(() => selectedStatus = newValue),
-              dropdownColor: Colors.white,
+              items: statusOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: (v) => setState(() => selectedStatus = v),
             ),
           ),
         ),
